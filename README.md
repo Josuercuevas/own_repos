@@ -22,7 +22,29 @@ Ideas developed or integrated with other publicly available projects, this repos
 
 	i. **wavpack_gstreamer**: Gstreamer Wavpack plugin encoder and file writer with Metadata Tags (C/C++)
 
-2.
+2. **computer_vision_img_vid**: Different computer vision algorithms implemented on CPU and GPU for image and video in raw and compressed domain **(H.264 standard)**, the folder is structured as follows:
+
+	a. **canny_edge_detection**: Canny edge detection, fully implemented on GPU
+
+	b. **colormap_extractor**: Color mapping extraction from RGB images
+
+	c. **data_augmentation**: Python implemented data augmentation for input images
+
+	d. **gstreamer**: further divided as follows:
+
+		i. **gst_imgproc**: blob and skin detector on gstreamer, also moment normalization and color-retinex implementations on gstreamer.
+
+		ii. **gst_rgb2gray**: RGB2GRAY implementation on gstreamer
+
+		iii. **gst_rgbmapping**: Color mapping implementation for gstreamer
+
+	e. **hough_transform_lines_circles**: Line and circle extraction using hough transform, fully implemented on GPU
+
+	f. **LBP_extract_module**: LBP feature extraction from sample images
+
+	g. **spatio_temporal_saliency_maps**: Static and Dynamic saliency mapping extraction from video/images
+
+	h. **ToneMapping**: Color enhancement using Tone mapping algorithm
 
 3.
 

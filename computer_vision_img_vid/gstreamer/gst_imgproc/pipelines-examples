@@ -1,0 +1,18 @@
+Display original image + encode ts file + perform img_proc detector
+
+No leaky queues:
+
+gst-launch-1.0 -m -v --gst-debug=queue:7,x264enc:7,skindetector:7,blobdetector:7,momentnormalization:7 --gst-plugin-path=/home/josue/Desktop/plugins/ v4l2src ! tee name=pipes pipes. ! queue ! videoconvert ! ximagesink sync=false async=false pipes. ! queue ! videoconvert ! x264enc ! video/x-h264,stream-format=avc,profile=baseline ! h264parse !  mpegtsmux ! filesink location=/home/josue/Desktop/plugins/test.ts sync=false async=false pipes. ! queue ! videoconvert ! skindetector space=hsv texture-thres=0.45 ! blobdetector maxx=640 maxy=640 maxArea=409600 texture-thres=0.45 ! momentnormalization padx=640 pady=640 normalize=1 ! videoconvert ! ximagesink sync=false async=false
+
+
+Leaky queues: dropping new buffers coming from the supplier (tee)
+
+gst-launch-1.0 -m -v --gst-debug=queue:7,x264enc:7,skindetector:7,blobdetector:7,momentnormalization:7 --gst-plugin-path=/home/josue/Desktop/plugins/ v4l2src ! tee name=pipes pipes. ! queue leaky=upstream ! videoconvert ! ximagesink sync=false async=false pipes. ! queue leaky=upstream ! videoconvert ! x264enc ! video/x-h264,stream-format=avc,profile=baseline ! h264parse !  mpegtsmux ! filesink location=/home/josue/Desktop/plugins/test.ts sync=false async=false pipes. ! queue leaky=upstream ! videoconvert ! skindetector space=hsv texture-thres=0.45 ! blobdetector maxx=640 maxy=640 maxArea=409600 texture-thres=0.45 ! momentnormalization padx=640 pady=640 normalize=1 ! videoconvert ! ximagesink sync=false async=false
+
+
+Leaky queues: dropping old buffers already in the queue (making space for new ones)
+
+gst-launch-1.0 -m -v --gst-debug=queue:7,x264enc:7,skindetector:7,blobdetector:7,momentnormalization:7 --gst-plugin-path=/home/josue/Desktop/plugins/ v4l2src ! tee name=pipes pipes. ! queue leaky=downstream ! videoconvert ! ximagesink sync=false async=false pipes. ! queue leaky=downstream ! videoconvert ! x264enc ! video/x-h264,stream-format=avc,profile=baseline ! h264parse !  mpegtsmux ! filesink location=/home/josue/Desktop/plugins/test.ts sync=false async=false pipes. ! queue leaky=downstream ! videoconvert ! skindetector space=hsv texture-thres=0.45 ! blobdetector maxx=640 maxy=640 maxArea=409600 texture-thres=0.45 ! momentnormalization padx=640 pady=640 normalize=1 ! videoconvert ! ximagesink sync=false async=false
+
+
+
