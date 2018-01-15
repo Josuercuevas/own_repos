@@ -46,7 +46,13 @@ Ideas developed or integrated with other publicly available projects, this repos
 
 	h. **ToneMapping**: Color enhancement using Tone mapping algorithm
 
-3.
+3. **metaheuristic_algorithms**: Implementation of several meta-heuristic algorithms including one developed during my master and PhD. degree. The folder is structured as follows:
+
+	a. **VOA**: Virus Optimization Algorithm proposed for the first time in 2009 but accepted until 2014.
+
+	b. **TBD**: more to be added in the future
+
+4.
 
 
 ### Contributors
