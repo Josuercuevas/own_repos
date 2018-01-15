@@ -4,7 +4,7 @@ A simple pipeline generator to visualize how threads or plugins are scheduled by
 
 The flowchar is as follows:
 
-[pipeline](viz/pipeline.jpg)
+![pipeline](viz/pipeline.jpg)
 
 
 ### CONTRIBUTORS
