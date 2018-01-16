@@ -1,0 +1,5 @@
+models/*.ckpt
+results/*.jpeg
+results/*.jpg
+results/*.bmp
+

@@ -50,9 +50,9 @@ Ideas developed or integrated with other publicly available projects, this repos
 
 	a. **VOA**: Virus Optimization Algorithm proposed for the first time in 2009 but accepted until 2014.
 
-	b. **TBD**: more to be added in the future
+	b. **TBD**: more to be added in the future ...
 
-4.
+4. **machine_and_deep_learning**: Experiments conducted on machine and deep learning algorithms, where two main frameworks were used: [Caffe](http://caffe.berkeleyvision.org/) and [Tensorflow](https://www.tensorflow.org/).
 
 
 ### Contributors
