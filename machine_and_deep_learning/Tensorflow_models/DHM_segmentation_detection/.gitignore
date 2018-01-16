@@ -1,4 +1,6 @@
 *.jpg
 *.ckpt
 event*
+*.bmp
 *.pyc
+*.so
