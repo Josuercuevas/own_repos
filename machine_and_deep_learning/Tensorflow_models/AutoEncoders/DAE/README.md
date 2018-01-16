@@ -20,6 +20,8 @@ Just type "python dae.py --help" on linux terminal to see the different options
 
 5. **Models checkpoints and Logs**: The models checkpoints will be placed inside "models/" and the tensorboard logs in "logs/" subfolders. As for a model ready for deployment you may place it inside "models/latest/".
 
+6. **Features supported**: [Dense Sparse Dense](https://arxiv.org/abs/1607.04381) training
+
 ### Important
 
 Your best reference is the source code, feel free to modify it as you wish. Any contribution is greatly appreciated.

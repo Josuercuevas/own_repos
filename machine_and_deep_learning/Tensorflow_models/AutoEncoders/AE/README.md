@@ -20,6 +20,8 @@ just run "python main.py --help" to get all the information you need to run this
 
 4. **Configuration**: The model configuration and settings are defined in "configs/common_configs.py" I have done several tests, therefore some changed may have to be done before you can successfully run this source code.
 
+5. **Features supported**: [Dense Sparse Dense](https://arxiv.org/abs/1607.04381) training
+
 ### Contributor
 
 Josue R. Cuevas
