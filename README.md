@@ -54,6 +54,8 @@ Ideas developed or integrated with other publicly available projects, this repos
 
 4. **machine_and_deep_learning**: Experiments conducted on machine and deep learning algorithms, where two main frameworks were used: [Caffe](http://caffe.berkeleyvision.org/) and [Tensorflow](https://www.tensorflow.org/).
 
+5. **caffe_own**: [Caffe](http://caffe.berkeleyvision.org/) repository with some modifications to support models and layers proposed over the past 4 years, for example: MobileNet, ShuffleNet, SSD, MaskRCNN, GAN, etc.
+
 
 ### Contributors
 
