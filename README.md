@@ -57,6 +57,8 @@ Ideas developed or integrated with other publicly available projects, this repos
 5. **caffe_own**: [Caffe](http://caffe.berkeleyvision.org/) repository with some modifications to support models and layers proposed over the past 4 years, for example: MobileNet, ShuffleNet, SSD, MaskRCNN, GAN, etc.
 
 
+6. **FarePRedictor**: Exprimenting with Machine Learning models for predicting Taxi ride fares.
+
 ### Contributors
 
 Josue R. Cuevas
