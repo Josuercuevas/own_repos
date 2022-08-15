@@ -150,13 +150,99 @@ def plot_fare_distribution_afr_curation(dataset_all = None):
     plt.savefig('fares_in_out_chicago.png')
     plt.close('all')
 
+    available_census_pick = dataset_all[dataset_all['Pickup Census Tract'].notna() & 
+                                            dataset_all['Pickup Census Tract'].notnull()]
+    available_census_drop = dataset_all[dataset_all['Dropoff Census Tract'].notna() &
+                                            dataset_all['Dropoff Census Tract'].notnull()]
+    
+    n_bins = len(available_census_pick['Pickup Census Tract'].unique())
+    pickup_census = available_census_pick['Pickup Census Tract'].hist(bins=n_bins)
+    ax = pickup_census
+    ax.grid(False)
+    plt.xlabel("Pickup Census Tract values")
+    plt.ylabel("Pickup Census Tract counts")
+    plt.xticks(rotation=90)
+    ax.set_ylim([0, 500])
+    plt.title("Pickup Census Tract Data Distribution")
+    plt.savefig('pickup_census_tract.png')
+    plt.close('all')
+    n_bins = len(available_census_drop['Dropoff Census Tract'].unique())
+    dropoff_census = available_census_drop['Dropoff Census Tract'].hist(bins=n_bins)
+    ax = dropoff_census
+    ax.grid(False)
+    plt.xlabel("Dropoff Census Tract values")
+    plt.ylabel("Dropoff Census Tract counts")
+    plt.xticks(rotation=90)
+    ax.set_ylim([0, 500])
+    plt.title("Dropoff Census Tract Data Distribution")
+    plt.savefig('dropoff_census_tract.png')
+    plt.close('all')
 
-def get_piechart_inout_chicago(outsideChicago = None, inside_chicago = None):
+    available_community_pick = dataset_all[dataset_all['Pickup Community Area'].notna() & 
+                                            dataset_all['Pickup Community Area'].notnull()]
+    available_community_drop = dataset_all[dataset_all['Dropoff Community Area'].notna() &
+                                            dataset_all['Dropoff Community Area'].notnull()]
+    
+    n_bins = len(available_community_pick['Pickup Community Area'].unique())
+    pickup_community = available_community_pick['Pickup Community Area'].hist(bins=n_bins)
+    ax = pickup_community
+    ax.grid(False)
+    plt.xlabel("Pickup Community Area values")
+    plt.ylabel("Pickup Community Area counts")
+    plt.xticks(rotation=90)
+    plt.title("Pickup Community Area Data Distribution")
+    plt.savefig('pickup_community_area.png')
+    plt.close('all')
+    n_bins = len(available_community_drop['Dropoff Community Area'].unique())
+    dropoff_community = available_community_drop['Dropoff Community Area'].hist(bins=n_bins)
+    ax = dropoff_community
+    ax.grid(False)
+    plt.xlabel("Dropoff Community Area values")
+    plt.ylabel("Dropoff Community Area counts")
+    plt.xticks(rotation=90)
+    plt.title("Dropoff Community Area Data Distribution")
+    plt.savefig('dropoff_community_area.png')
+    plt.close('all')
+
+    paymenttype = dataset_all[dataset_all['Payment Type'].notna() & dataset_all['Payment Type'].notnull()]
+    n_bins = len(paymenttype['Payment Type'].unique())
+    payment_type = paymenttype['Payment Type'].hist(bins=n_bins, density=True)
+    ax = payment_type
+    ax.grid(False)
+    plt.xlabel("Payment Type values")
+    plt.ylabel("Payment Type counts")
+    plt.xticks(rotation=90)
+    plt.title("Payment Type Data Distribution")
+    plt.savefig('payment_type.png')
+    plt.close('all')
+
+    company = dataset_all[dataset_all['Company'].notna() & dataset_all['Company'].notnull()]
+    n_bins = len(company['Company'].unique())
+    company_type = company['Company'].hist(bins=n_bins, density=True)
+    ax = company_type
+    ax.grid(False)
+    plt.xlabel("Company values")
+    plt.ylabel("Company counts")
+    plt.xticks(rotation=90)
+    plt.title("Company Data Distribution")
+    plt.savefig('company_type.png')
+    plt.close('all')
+
+
+def get_piechart_inout_chicago(outsideChicago = None, inside_chicago = None, 
+                                    cash_outside = None, cash_inside = None):
     values = np.array([len(outsideChicago), len(inside_chicago)])
     labels = ['Outside Chicago', 'Inside Chicago']
     plt.pie(x=values, labels=labels, autopct='%1.1f%%')
     plt.title("Pie Chart of Trips Inside and Outside Chicago")
     plt.savefig('piechart_trips_in_out_chicago.png')
+    plt.close('all')
+    
+    sumtotal = cash_outside+cash_inside
+    plt.pie(x=np.array([round(cash_outside, 0), round(cash_inside, 0)]), labels=labels, 
+                            autopct=lambda p:f'{round((p/100.0)*sumtotal,0):,} usd')
+    plt.title("Pie Chart of Cash (USD) Inside and Outside Chicago")
+    plt.savefig('piechart_cash_in_out_chicago.png')
     plt.close('all')
 
 def get_piechart_hidden_data(outsideChicago_privacy = None, privacy = None, dataset_all = None):

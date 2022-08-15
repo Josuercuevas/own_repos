@@ -16,6 +16,11 @@ print(f'Columns in Dataframe are: {dataset_all.columns.to_list()}')
 print(f'Total number of datapoints are: {len(dataset_all)}')
 
 print(f'The number of datapoints outside chicago are: {len(outsideChicago)}')
+mindate = outsideChicago['Trip Start Timestamp'].min()
+maxdate = outsideChicago['Trip Start Timestamp'].max()
+print(mindate, maxdate)
+cash_outside = outsideChicago['Trip Total'].sum()
+print(f'Gross income from trips outside Chicago: {cash_outside}')
 print(f'The number of datapoints outside chicago hidden because of privacy are: {len(outsideChicago_privacy)}')
 print(f'The number of datapoints outside chicago missing are: {len(outsideChicago_missing)}')
 print(f'The number of datapoints outside chicago with all information are: {len(outsideChicago_complete)}')
@@ -23,12 +28,18 @@ print(f'The number of datapoints outside chicago with all information are: {len(
 
 inside_chicago, privacy, missing, complete = get_inside_chicago_info(dataset_all=dataset_all)
 print(f'The number of datapoints inside chicago are: {len(inside_chicago)}')
+mindate = inside_chicago['Trip Start Timestamp'].min()
+maxdate = inside_chicago['Trip Start Timestamp'].max()
+print(mindate, maxdate)
+cash_inside = inside_chicago['Trip Total'].sum()
+print(f'Gross income from trips inside Chicago: {cash_inside}')
 print(f'The number of datapoints inside chicago hidden because of privacy are: {len(privacy)}')
 print(f'The number of datapoints inside chicago missing are: {len(missing)}')
 print(f'The number of datapoints inside chicago with all information are: {len(complete)}')
 
 # Draw proportion of Trips inside and Outside Chicago
-get_piechart_inout_chicago(outsideChicago=outsideChicago, inside_chicago=inside_chicago)
+get_piechart_inout_chicago(outsideChicago=outsideChicago, inside_chicago=inside_chicago, 
+                            cash_outside=cash_outside, cash_inside=cash_inside)
 
 # Draw proportion of Trips with Privacy filter activated vs deactivated
 get_piechart_hidden_data(outsideChicago_privacy=outsideChicago_privacy, privacy=privacy, dataset_all=dataset_all)
