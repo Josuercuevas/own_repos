@@ -2,25 +2,22 @@
 
 Ideas developed or integrated with other publicly available projects, this repository is detailed as follows:
 
-1. **miscellaneous**: Subfolder containing different ideas tested over the past years, and do not have any specific field of application. This subfolder has the following structure:
+1. **machine_and_deep_learning**: Experiments conducted on machine and deep learning algorithms, where 3 main frameworks were used: [Caffe](http://caffe.berkeleyvision.org/), [Tensorflow](https://www.tensorflow.org/), [pytorch](https://pytorch.org/)
 
-	a. **Bbox_filter**: Bounding box filter for object detection algorithms (python)
+	a. **pytorch_models/Diffusion**: own pytorch implementation of [Denoising Diffusion Probabilistic Model (DDPM)](https://arxiv.org/pdf/2006.11239.pdf) with class conditioning and multi-gpu support.
 
-	b. **bitstream_analizer_openh264based**: h264-bitstream saliency map extractor (C/C++)
+	b. **FarePRedictor**: Exprimenting with Machine Learning models for predicting Taxi ride fares.
 
-	c. **ffmpeg_video_handler_c**: FFMPEG library based video/camera frame extractor (C/C++)
+	c. **Tensorflow_models/Autoencoders**: Own tensroflow implementation of [Denoising AutoEncoders (DAE)](https://paperswithcode.com/method/denoising-autoencoder), and [AutoEncoders (AE)](http://ufldl.stanford.edu/tutorial/unsupervised/Autoencoders/)
 
-	d. **fft_conformance**: FFT conformance test to determine performance and accuracy (C/C++)
+	d. **Tensorflow_models/DHM**: An attempt to replicate the results from [Deep Hierarchical Models for Joint Object Detection](http://on-demand.gputechconf.com/gtc/2017/presentation/s7347-joe-chen-a-deep-hierarchial-model-for-joint-object-detection.pdf), which could be consider as an early attempt into what is know today as [Multi-Task Learning (MTL)](https://en.wikipedia.org/wiki/Multi-task_learning)
 
-	e. **gif_generator**: GIF generator application (C/C++)
+	e. **Tensorflow_models/feature_extraction_classification_models**: different tensorflow implementations for [SqueezeNet](https://arxiv.org/abs/1602.07360), [Resnet](https://arxiv.org/abs/1512.03385), [ShuffleNet](https://arxiv.org/abs/1707.01083), and [MobileNet](https://arxiv.org/abs/1704.04861).
 
-	f. **h264_decoder_module_python**: FFMPEG video decoder (python)
+	f. **caffe_models/ShuffleNet**: Experimentation with shufflenet topology
 
-	g. **hd5_rawImage_database_creator**: HDF5 database image file generator (python)
+	g. **Tensorflow2Caffe_converter**: Model converter from Tensorflow to Caffe.
 
-	h. **test_gstreamer_thread_priorities**: Gstreamer thread priority test (C/C++)
-
-	i. **wavpack_gstreamer**: Gstreamer Wavpack plugin encoder and file writer with Metadata Tags (C/C++)
 
 2. **computer_vision_img_vid**: Different computer vision algorithms implemented on CPU and GPU for image and video in raw and compressed domain **(H.264 standard)**, the folder is structured as follows:
 
@@ -52,12 +49,28 @@ Ideas developed or integrated with other publicly available projects, this repos
 
 	b. **TBD**: more to be added in the future ...
 
-4. **machine_and_deep_learning**: Experiments conducted on machine and deep learning algorithms, where two main frameworks were used: [Caffe](http://caffe.berkeleyvision.org/) and [Tensorflow](https://www.tensorflow.org/).
+1. **miscellaneous**: Subfolder containing different ideas tested over the past years, and do not have any specific field of application. This subfolder has the following structure:
 
-5. **caffe_own**: [Caffe](http://caffe.berkeleyvision.org/) repository with some modifications to support models and layers proposed over the past 4 years, for example: MobileNet, ShuffleNet, SSD, MaskRCNN, GAN, etc.
+	a. **Bbox_filter**: Bounding box filter for object detection algorithms (python)
+
+	b. **bitstream_analizer_openh264based**: h264-bitstream saliency map extractor (C/C++)
+
+	c. **ffmpeg_video_handler_c**: FFMPEG library based video/camera frame extractor (C/C++)
+
+	d. **fft_conformance**: FFT conformance test to determine performance and accuracy (C/C++)
+
+	e. **gif_generator**: GIF generator application (C/C++)
+
+	f. **h264_decoder_module_python**: FFMPEG video decoder (python)
+
+	g. **hd5_rawImage_database_creator**: HDF5 database image file generator (python)
+
+	h. **test_gstreamer_thread_priorities**: Gstreamer thread priority test (C/C++)
+
+	i. **wavpack_gstreamer**: Gstreamer Wavpack plugin encoder and file writer with Metadata Tags (C/C++)
 
 
-6. **FarePRedictor**: Exprimenting with Machine Learning models for predicting Taxi ride fares.
+5. **caffe_own**: [Caffe](http://caffe.berkeleyvision.org/) repository with some modifications to support models and layers proposed over the past 5 years, for example: MobileNet, ShuffleNet, SSD, MaskRCNN, GAN, etc.
 
 ### Contributors
 
