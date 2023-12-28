@@ -21,7 +21,7 @@ Pytorch implementation of the paper [Denoising Diffusion Probabilistic Model (DD
 
 # Some Sample Results
 
-Some samples generated from CIFAR10 trained model (for x-iterations) are shown in the figure below. The clases for each column are [`airplane`, `car`, `bird`, `cat`, `deer`, `dog`, `frog`, `horse`, `ship`, `truck`].
+Some samples generated from CIFAR10 trained model (for 510k-iterations) are shown in the figure below. The clases for each column are [`airplane`, `car`, `bird`, `cat`, `deer`, `dog`, `frog`, `horse`, `ship`, `truck`].
 
 <img src="./resources/doc/generated_samples.png" width="500px"></img>
 
