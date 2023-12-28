@@ -14,9 +14,9 @@ Pytorch implementation of the paper [Denoising Diffusion Probabilistic Model (DD
 
 - Support visualization of topologies (unittests). <span style="color:green">**DONE**</span>
 
-- Support Testing module. <span style="color:orange">**In Progress**</span>
+- Support Testing module. <span style="color:green">**DONE**</span>
 
-- Support Sampling and Denoising senquence generation. <span style="color:orange">**In Progress**</span>
+- Support Sampling and Denoising senquence generation. <span style="color:green">**DONE**</span>
 
 
 # Some Sample Results
