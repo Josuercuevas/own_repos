@@ -14,10 +14,6 @@ Tensorflow implementations of classification models mainly, for now I have compl
 
 ![helnet](bodynet_helnet.png)
 
-4. [ShuffleNet](https://arxiv.org/abs/1707.01083) --> not ready
-
-5. [MobileNet](https://arxiv.org/abs/1704.04861) --> not ready
-
 ### How to run it
 
 Just type "python main.py --help" for details on how to execute this code
