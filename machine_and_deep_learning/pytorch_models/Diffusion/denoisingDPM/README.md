@@ -68,6 +68,10 @@ python3 main.py --debug_level 2 --path2interfiles resources --operation genseq
 
 Please take a look of the README files in the '**resources/datasets**' folder for instructions on preparing the different datasets.
 
+# Latest Model Checkpoint
+
+[Please find it here](https://drive.google.com/drive/folders/1O3oih1tFSSbRzH0cJWRPzDHcozECF6ZC?usp=sharing)
+
 # References
 
 1. [Improved Denoising Diffusion Probabilistic Models](https://arxiv.org/pdf/2102.09672.pdf)
