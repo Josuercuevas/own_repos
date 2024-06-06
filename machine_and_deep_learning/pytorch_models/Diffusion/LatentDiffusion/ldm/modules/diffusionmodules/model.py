@@ -1,5 +1,5 @@
 # pytorch_diffusion + derived encoder decoder
-from configs.conf import (LOGI)
+from configs.conf import (LOGI, LOGD, LOGE, LOGW)
 import math
 import torch
 import torch.nn as nn
@@ -372,7 +372,10 @@ class Encoder(nn.Module):
                  resolution, z_channels, double_z=True, use_linear_attn=False, attn_type="vanilla",
                  **ignore_kwargs):
         super().__init__()
-        if use_linear_attn: attn_type = "linear"
+        if use_linear_attn:
+            attn_type = "linear"
+        LOGD(f"Using {attn_type} attention layer")
+
         self.ch = ch
         self.temb_ch = 0
         self.num_resolutions = len(ch_mult)
@@ -380,7 +383,7 @@ class Encoder(nn.Module):
         self.resolution = resolution
         self.in_channels = in_channels
 
-        # downsampling
+        LOGD("Downsampling input")
         self.conv_in = torch.nn.Conv2d(in_channels,
                                        self.ch,
                                        kernel_size=3,
@@ -412,7 +415,7 @@ class Encoder(nn.Module):
                 curr_res = curr_res // 2
             self.down.append(down)
 
-        # middle
+        LOGD("Z-Embeddings block creation")
         self.mid = nn.Module()
         self.mid.block_1 = ResnetBlock(in_channels=block_in,
                                        out_channels=block_in,
@@ -424,7 +427,7 @@ class Encoder(nn.Module):
                                        temb_channels=self.temb_ch,
                                        dropout=dropout)
 
-        # end
+        LOGD("Encoder Output block creation")
         self.norm_out = Normalize(block_in)
         self.conv_out = torch.nn.Conv2d(block_in,
                                         2*z_channels if double_z else z_channels,
@@ -466,7 +469,9 @@ class Decoder(nn.Module):
                  resolution, z_channels, give_pre_end=False, tanh_out=False, use_linear_attn=False,
                  attn_type="vanilla", **ignorekwargs):
         super().__init__()
-        if use_linear_attn: attn_type = "linear"
+        if use_linear_attn:
+            attn_type = "linear"
+        LOGD(f"Using {attn_type} attention layer")
         self.ch = ch
         self.temb_ch = 0
         self.num_resolutions = len(ch_mult)
@@ -481,16 +486,16 @@ class Decoder(nn.Module):
         block_in = ch*ch_mult[self.num_resolutions-1]
         curr_res = resolution // 2**(self.num_resolutions-1)
         self.z_shape = (1,z_channels,curr_res,curr_res)
-        LOGI(f"Working with z of shape {self.z_shape} = {np.prod(self.z_shape)} dimensions.")
+        LOGD(f"Working with z of shape {self.z_shape} = {np.prod(self.z_shape)} dimensions.")
 
-        # z to block_in
+        LOGD("Z-Embeddings block creation")
         self.conv_in = torch.nn.Conv2d(z_channels,
                                        block_in,
                                        kernel_size=3,
                                        stride=1,
                                        padding=1)
 
-        # middle
+        LOGD("Middle layers block creation")
         self.mid = nn.Module()
         self.mid.block_1 = ResnetBlock(in_channels=block_in,
                                        out_channels=block_in,
@@ -502,7 +507,7 @@ class Decoder(nn.Module):
                                        temb_channels=self.temb_ch,
                                        dropout=dropout)
 
-        # upsampling
+        LOGD("Usampling layers block creation")
         self.up = nn.ModuleList()
         for i_level in reversed(range(self.num_resolutions)):
             block = nn.ModuleList()
@@ -524,7 +529,7 @@ class Decoder(nn.Module):
                 curr_res = curr_res * 2
             self.up.insert(0, up) # prepend to get consistent order
 
-        # end
+        LOGD("Decoder block output creation")
         self.norm_out = Normalize(block_in)
         self.conv_out = torch.nn.Conv2d(block_in,
                                         out_ch,
@@ -751,14 +756,7 @@ class Resize(nn.Module):
         self.mode = mode
         if self.with_conv:
             LOGI(f"Note: {self.__class__.__name} uses learned downsampling and will ignore the fixed {mode} mode")
-            raise NotImplementedError()
-            assert in_channels is not None
-            # no asymmetric padding in torch conv, must do it ourselves
-            self.conv = torch.nn.Conv2d(in_channels,
-                                        in_channels,
-                                        kernel_size=4,
-                                        stride=2,
-                                        padding=1)
+            raise NotImplementedError
 
     def forward(self, x, scale_factor=1.0):
         if scale_factor==1.0:
@@ -768,7 +766,6 @@ class Resize(nn.Module):
         return x
 
 class FirstStagePostProcessor(nn.Module):
-
     def __init__(self, ch_mult:list, in_channels,
                  pretrained_model:nn.Module=None,
                  reshape=False,

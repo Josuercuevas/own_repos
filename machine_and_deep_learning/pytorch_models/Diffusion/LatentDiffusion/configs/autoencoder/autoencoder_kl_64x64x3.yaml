@@ -25,7 +25,7 @@ model:
 
 
 data:
-  target: main.DataModuleFromConfig
+  target: trainer.trainer_main.DataModuleFromConfig
   params:
     batch_size: 12
     wrap: True
@@ -43,7 +43,7 @@ data:
 lightning:
   callbacks:
     image_logger:
-      target: main.ImageLogger
+      target: trainer.trainer_main.ImageLogger
       params:
         batch_frequency: 1000
         max_images: 8

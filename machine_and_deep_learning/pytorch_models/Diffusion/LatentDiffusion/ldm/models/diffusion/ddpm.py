@@ -6,7 +6,7 @@ https://github.com/CompVis/taming-transformers
 -- merci
 """
 
-from configs.conf import (LOGE, LOGW, LOGI)
+from configs.conf import (LOGE, LOGW, LOGI, LOGD)
 import torch
 import torch.nn as nn
 import numpy as np
@@ -120,6 +120,7 @@ class DDPM(pl.LightningModule):
 
     def register_schedule(self, given_betas=None, beta_schedule="linear", timesteps=1000,
                           linear_start=1e-4, linear_end=2e-2, cosine_s=8e-3):
+        LOGI("Registering schedule for LDM")
         if exists(given_betas):
             betas = given_betas
         else:
@@ -171,6 +172,7 @@ class DDPM(pl.LightningModule):
         lvlb_weights[0] = lvlb_weights[1]
         self.register_buffer('lvlb_weights', lvlb_weights, persistent=False)
         assert not torch.isnan(self.lvlb_weights).all()
+        LOGD(f"Buffers looks as follows:\n{self.register_buffer}\nRegistration Completed!")
 
     @contextmanager
     def ema_scope(self, context=None):
@@ -188,7 +190,7 @@ class DDPM(pl.LightningModule):
                     LOGI(f"{context}: Restored training weights")
 
     def init_from_ckpt(self, path, ignore_keys=list(), only_model=False):
-        LOGI(f"Loading weights from {path}")
+        LOGI(f"Loading weights from: {path}")
         sd = torch.load(path, map_location="cpu")
         if "state_dict" in list(sd.keys()):
             sd = sd["state_dict"]
@@ -332,6 +334,7 @@ class DDPM(pl.LightningModule):
         return self.p_losses(x, t, *args, **kwargs)
 
     def get_input(self, batch, k):
+        LOGD("Retrieving input images")
         x = batch[k]
         if len(x.shape) == 3:
             x = x[..., None]
@@ -428,7 +431,6 @@ class DDPM(pl.LightningModule):
 
 
 class LatentDiffusion(DDPM):
-    """main class"""
     def __init__(self,
                  first_stage_config,
                  cond_stage_config,
@@ -488,9 +490,11 @@ class LatentDiffusion(DDPM):
         LOGI("LDM module initialized!")
 
     def make_cond_schedule(self, ):
+        LOGI("Making condition schedule...")
         self.cond_ids = torch.full(size=(self.num_timesteps,), fill_value=self.num_timesteps - 1, dtype=torch.long)
         ids = torch.round(torch.linspace(0, self.num_timesteps - 1, self.num_timesteps_cond)).long()
         self.cond_ids[:self.num_timesteps_cond] = ids
+        LOGI("Condition schedule created!")
 
     @rank_zero_only
     @torch.no_grad()
@@ -564,14 +568,18 @@ class LatentDiffusion(DDPM):
 
     def get_first_stage_encoding(self, encoder_posterior):
         if isinstance(encoder_posterior, DiagonalGaussianDistribution):
+            LOGD("encoder_posterior is DiagonalGaussianDistribution from AE")
             z = encoder_posterior.sample()
         elif isinstance(encoder_posterior, torch.Tensor):
+            LOGD("encoder_posterior are embeddings from AE")
             z = encoder_posterior
         else:
-            raise NotImplementedError(f"encoder_posterior of type '{type(encoder_posterior)}' not yet implemented")
+            LOGE(f"encoder_posterior of type '{type(encoder_posterior)}' not yet implemented")
+            raise NotImplementedError
         return self.scale_factor * z
 
     def get_learned_conditioning(self, c):
+        LOGD("Conditioning model encoder called")
         if self.cond_stage_forward is None:
             if hasattr(self.cond_stage_model, 'encode') and callable(self.cond_stage_model.encode):
                 c = self.cond_stage_model.encode(c)
@@ -596,7 +604,7 @@ class LatentDiffusion(DDPM):
         :param h: height
         :param w: width
         :return: normalized distance to image border,
-         wtith min distance = 0 at border and max dist = 0.5 at image center
+         with min distance = 0 at border and max dist = 0.5 at image center
         """
         lower_right_corner = torch.tensor([h - 1, w - 1]).view(1, 1, 2)
         arr = self.meshgrid(h, w) / lower_right_corner
@@ -697,7 +705,6 @@ class LatentDiffusion(DDPM):
                 xc = x
             if not self.cond_stage_trainable or force_c_encode:
                 if isinstance(xc, dict) or isinstance(xc, list):
-                    # import pudb; pudb.set_trace()
                     c = self.get_learned_conditioning(xc)
                 else:
                     c = self.get_learned_conditioning(xc.to(self.device))
@@ -727,6 +734,7 @@ class LatentDiffusion(DDPM):
 
     @torch.no_grad()
     def decode_first_stage(self, z, predict_cids=False, force_not_quantize=False):
+        LOGD("Decoding outputs from first stage model")
         if predict_cids:
             if z.dim() == 4:
                 z = torch.argmax(z.exp(), dim=1).long()
@@ -847,6 +855,7 @@ class LatentDiffusion(DDPM):
 
     @torch.no_grad()
     def encode_first_stage(self, x):
+        LOGD("Encoding input with first stage model")
         if hasattr(self, "split_input_params"):
             if self.split_input_params["patch_distributed_vq"]:
                 ks = self.split_input_params["ks"]  # eg. (128, 128)
@@ -1091,7 +1100,8 @@ class LatentDiffusion(DDPM):
         elif self.parameterization == "x0":
             x_recon = model_out
         else:
-            raise NotImplementedError()
+            LOGE(f"Parameterization is not supported: {self.parameterization}")
+            raise NotImplementedError
 
         if clip_denoised:
             x_recon.clamp_(-1., 1.)
@@ -1116,7 +1126,8 @@ class LatentDiffusion(DDPM):
                                        return_x0=return_x0,
                                        score_corrector=score_corrector, corrector_kwargs=corrector_kwargs)
         if return_codebook_ids:
-            raise DeprecationWarning("Support dropped.")
+            LOGW("Codebook Ids Support dropped.")
+            raise DeprecationWarning
             model_mean, _, model_log_variance, logits = outputs
         elif return_x0:
             model_mean, _, model_log_variance, x0 = outputs
@@ -1433,6 +1444,7 @@ class DiffusionWrapper(pl.LightningModule):
         LOGI("Done Creating Diffusion Wrapper!")
 
     def forward(self, x, t, c_concat: list = None, c_crossattn: list = None):
+        LOGD(f"Conditioning key provided is: {self.conditioning_key}")
         if self.conditioning_key is None:
             out = self.diffusion_model(x, t)
         elif self.conditioning_key == 'concat':
@@ -1449,7 +1461,8 @@ class DiffusionWrapper(pl.LightningModule):
             cc = c_crossattn[0]
             out = self.diffusion_model(x, t, y=cc)
         else:
-            raise NotImplementedError()
+            LOGE("Conditioning key is not supported")
+            raise NotImplementedError
 
         return out
 

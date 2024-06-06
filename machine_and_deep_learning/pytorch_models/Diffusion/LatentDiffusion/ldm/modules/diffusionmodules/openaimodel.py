@@ -1,4 +1,4 @@
-from configs.conf import (LOGI)
+from configs.conf import (LOGI, LOGD, LOGW, LOGE)
 from abc import abstractmethod
 from functools import partial
 import math
@@ -440,7 +440,6 @@ class UNetModel(nn.Module):
     :param use_new_attention_order: use a different attention pattern for potentially
                                     increased efficiency.
     """
-
     def __init__(
         self,
         image_size,
@@ -471,10 +470,10 @@ class UNetModel(nn.Module):
         LOGI("Initializing openAI UNetModel...")
         super().__init__()
         if use_spatial_transformer:
-            assert context_dim is not None, 'Fool!! You forgot to include the dimension of your cross-attention conditioning...'
+            assert context_dim is not None, "You forgot to include the dimension of your cross-attention conditioning..."
 
         if context_dim is not None:
-            assert use_spatial_transformer, 'Fool!! You forgot to use the spatial transformer for your cross-attention conditioning...'
+            assert use_spatial_transformer, "You forgot to use the spatial transformer for your cross-attention conditioning..."
             from omegaconf.listconfig import ListConfig
             if type(context_dim) == ListConfig:
                 context_dim = list(context_dim)
@@ -515,20 +514,16 @@ class UNetModel(nn.Module):
         if self.num_classes is not None:
             self.label_emb = nn.Embedding(num_classes, time_embed_dim)
 
-        # ================== INPUT BLOCK coming from trained Encoder
-        self.input_blocks = nn.ModuleList(
-            [
-                TimestepEmbedSequential(
-                    conv_nd(dims, in_channels, model_channels, 3, padding=1)
-                )
-            ]
-        )
+        LOGD("INPUT BLOCK coming from trained Encoder")
+        self.input_blocks = nn.ModuleList([TimestepEmbedSequential(
+                                                conv_nd(dims, in_channels, model_channels, 3, padding=1)
+                                            )])
         self._feature_size = model_channels
         input_block_chans = [model_channels]
         ch = model_channels
         ds = 1
         
-        # ================== ENCODER
+        LOGD("ENCODER creation")
         for level, mult in enumerate(channel_mult):
             for _ in range(num_res_blocks):
                 layers = [
@@ -591,7 +586,7 @@ class UNetModel(nn.Module):
                 ds *= 2
                 self._feature_size += ch
 
-        # ================== MIDDLE
+        LOGD("MIDDLE BLOCK creation")
         if num_head_channels == -1:
             dim_head = ch // num_heads
         else:
@@ -629,7 +624,7 @@ class UNetModel(nn.Module):
         )
         self._feature_size += ch
 
-        # ================== DECODER
+        LOGD("DECODER BLOCK creation")
         self.output_blocks = nn.ModuleList([])
         for level, mult in list(enumerate(channel_mult))[::-1]:
             for i in range(num_res_blocks + 1):
@@ -686,13 +681,14 @@ class UNetModel(nn.Module):
                 self.output_blocks.append(TimestepEmbedSequential(*layers))
                 self._feature_size += ch
 
-        # ================== FINAL OUTPUT (Z-embeddings that needs to be decoded by Trained Decoder)
+        LOGD("FINAL OUTPUT (Z-embeddings that needs to be decoded by Trained Decoder)")
         self.out = nn.Sequential(
             normalization(ch),
             nn.SiLU(),
             zero_module(conv_nd(dims, model_channels, out_channels, 3, padding=1)),
         )
         if self.predict_codebook_ids:
+            LOGW("Using codebook ids predictions")
             self.id_predictor = nn.Sequential(
                 normalization(ch),
                 conv_nd(dims, model_channels, n_embed, 1),
@@ -705,6 +701,7 @@ class UNetModel(nn.Module):
         """
         Convert the torso of the model to float16.
         """
+        LOGD("Converting to float16")
         self.input_blocks.apply(convert_module_to_f16)
         self.middle_block.apply(convert_module_to_f16)
         self.output_blocks.apply(convert_module_to_f16)
@@ -713,6 +710,7 @@ class UNetModel(nn.Module):
         """
         Convert the torso of the model to float32.
         """
+        LOGD("Converting to float32")
         self.input_blocks.apply(convert_module_to_f32)
         self.middle_block.apply(convert_module_to_f32)
         self.output_blocks.apply(convert_module_to_f32)
@@ -729,35 +727,37 @@ class UNetModel(nn.Module):
         assert (y is not None) == (
             self.num_classes is not None
         ), "must specify y if and only if the model is class-conditional"
-        # ================ Timestep embeddings
+        LOGD("Timestep embeddings creation")
         hs = []
         t_emb = timestep_embedding(timesteps, self.model_channels, repeat_only=False)
         emb = self.time_embed(t_emb)
 
-        # ================ Ammend class embeddings if needed
         if self.num_classes is not None:
+            LOGD("Ammendding class embeddings")
             assert y.shape == (x.shape[0],)
             emb = emb + self.label_emb(y)
 
-        # ================ ENCODER layers
+        LOGD("ENCODER layers creation")
         h = x.type(self.dtype)
         for module in self.input_blocks:
             h = module(h, emb, context)
             hs.append(h)
         
-        # ================ MIDDLE DIFUSSED layers
+        LOGD("MIDDLE DIFUSSED layers creation")
         h = self.middle_block(h, emb, context)
         
-        # ================ DECODER Layers
+        LOGD("DECODER Layers creation")
         for module in self.output_blocks:
             h = th.cat([h, hs.pop()], dim=1)
             h = module(h, emb, context)
         
-        # ================ OUTPUT final layers
+        LOGD("OUTPUT final layers creation")
         h = h.type(x.dtype)
         if self.predict_codebook_ids:
+            LOGD("Predicting codebook ids")
             return self.id_predictor(h)
         else:
+            LOGD("Outputting final layer")
             return self.out(h)
 
 
@@ -792,7 +792,7 @@ class EncoderUNetModel(nn.Module):
         **kwargs
     ):
         super().__init__()
-
+        LOGI("Initialization of EncoderUNetModel")
         if num_heads_upsample == -1:
             num_heads_upsample = num_heads
 
@@ -810,6 +810,7 @@ class EncoderUNetModel(nn.Module):
         self.num_head_channels = num_head_channels
         self.num_heads_upsample = num_heads_upsample
 
+        LOGD("Creating time embeddings")
         time_embed_dim = model_channels * 4
         self.time_embed = nn.Sequential(
             linear(model_channels, time_embed_dim),
@@ -817,13 +818,10 @@ class EncoderUNetModel(nn.Module):
             linear(time_embed_dim, time_embed_dim),
         )
 
-        self.input_blocks = nn.ModuleList(
-            [
-                TimestepEmbedSequential(
-                    conv_nd(dims, in_channels, model_channels, 3, padding=1)
-                )
-            ]
-        )
+        LOGD("Creating encoder blocks")
+        self.input_blocks = nn.ModuleList([TimestepEmbedSequential(
+                                            conv_nd(dims, in_channels, model_channels, 3, padding=1)
+                                        )])
         self._feature_size = model_channels
         input_block_chans = [model_channels]
         ch = model_channels
@@ -880,6 +878,7 @@ class EncoderUNetModel(nn.Module):
                 ds *= 2
                 self._feature_size += ch
 
+        LOGD("Creating embedding Z blocks")
         self.middle_block = TimestepEmbedSequential(
             ResBlock(
                 ch,
@@ -907,6 +906,8 @@ class EncoderUNetModel(nn.Module):
         )
         self._feature_size += ch
         self.pool = pool
+
+        LOGD(f"Creating output layer with Pool = {pool}")
         if pool == "adaptive":
             self.out = nn.Sequential(
                 normalization(ch),
@@ -938,12 +939,16 @@ class EncoderUNetModel(nn.Module):
                 nn.Linear(2048, self.out_channels),
             )
         else:
-            raise NotImplementedError(f"Unexpected {pool} pooling")
+            LOGE(f"Unexpected {pool} pooling")
+            raise NotImplementedError
+
+        LOGI("EncoderUNetModel initialized")
 
     def convert_to_fp16(self):
         """
         Convert the torso of the model to float16.
         """
+        LOGD("Converting to fp16")
         self.input_blocks.apply(convert_module_to_f16)
         self.middle_block.apply(convert_module_to_f16)
 
@@ -951,6 +956,7 @@ class EncoderUNetModel(nn.Module):
         """
         Convert the torso of the model to float32.
         """
+        LOGD("Converting to fp32")
         self.input_blocks.apply(convert_module_to_f32)
         self.middle_block.apply(convert_module_to_f32)
 

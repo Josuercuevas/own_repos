@@ -7,7 +7,7 @@
 #
 # thanks!
 
-from configs.conf import (LOGI)
+from configs.conf import (LOGE, LOGD)
 import os
 import math
 import torch
@@ -39,37 +39,36 @@ def make_beta_schedule(schedule, n_timestep, linear_start=1e-4, linear_end=2e-2,
     elif schedule == "sqrt":
         betas = torch.linspace(linear_start, linear_end, n_timestep, dtype=torch.float64) ** 0.5
     else:
-        raise ValueError(f"schedule '{schedule}' unknown.")
+        LOGE(f"schedule '{schedule}' unknown.")
+        raise ValueError
     return betas.numpy()
 
 
-def make_ddim_timesteps(ddim_discr_method, num_ddim_timesteps, num_ddpm_timesteps, verbose=True):
+def make_ddim_timesteps(ddim_discr_method, num_ddim_timesteps, num_ddpm_timesteps):
     if ddim_discr_method == 'uniform':
         c = num_ddpm_timesteps // num_ddim_timesteps
         ddim_timesteps = np.asarray(list(range(0, num_ddpm_timesteps, c)))
     elif ddim_discr_method == 'quad':
         ddim_timesteps = ((np.linspace(0, np.sqrt(num_ddpm_timesteps * .8), num_ddim_timesteps)) ** 2).astype(int)
     else:
-        raise NotImplementedError(f'There is no ddim discretization method called "{ddim_discr_method}"')
-
-    # assert ddim_timesteps.shape[0] == num_ddim_timesteps
+        LOGE(f"There is no ddim discretization method called {ddim_discr_method}")
+        raise NotImplementedError
     # add one to get the final alpha values right (the ones from first scale to data during sampling)
     steps_out = ddim_timesteps + 1
-    if verbose:
-        LOGI(f"Selected timesteps for ddim sampler: {steps_out}")
+    LOGD(f"Selected timesteps for ddim sampler: {steps_out}")
     return steps_out
 
 
-def make_ddim_sampling_parameters(alphacums, ddim_timesteps, eta, verbose=True):
+def make_ddim_sampling_parameters(alphacums, ddim_timesteps, eta):
     # select alphas for computing the variance schedule
     alphas = alphacums[ddim_timesteps]
     alphas_prev = np.asarray([alphacums[0]] + alphacums[ddim_timesteps[:-1]].tolist())
 
     # according the the formula provided in https://arxiv.org/abs/2010.02502
     sigmas = eta * np.sqrt((1 - alphas_prev) / (1 - alphas) * (1 - alphas / alphas_prev))
-    if verbose:
-        LOGI(f"Selected alphas for ddim sampler: a_t: {alphas}; a_(t-1): {alphas_prev}")
-        LOGI(f"For the chosen value of eta, which is {eta}, this results in the following sigma_t schedule for ddim sampler {sigmas}")
+    LOGD(f"Selected alphas for ddim sampler: a_t: {alphas}; a_(t-1): {alphas_prev}"
+         f"For the chosen value of eta, which is {eta}, this results in the"
+         f" following sigma_t schedule for ddim sampler {sigmas}")
     return sigmas, alphas, alphas_prev
 
 
@@ -261,6 +260,7 @@ class HybridConditioner(nn.Module):
 
 
 def noise_like(shape, device, repeat=False):
+    LOGD(f"Noise to be created has shape: {shape}")
     repeat_noise = lambda: torch.randn((1, *shape[1:]), device=device).repeat(shape[0], *((1,) * (len(shape) - 1)))
     noise = lambda: torch.randn(shape, device=device)
     return repeat_noise() if repeat else noise()

@@ -1,4 +1,4 @@
-from configs.conf import (LOGW, LOGI)
+from configs.conf import (LOGW, LOGI, LOGD)
 import torch
 import pytorch_lightning as pl
 import torch.nn.functional as F
@@ -33,13 +33,13 @@ class VQModel(pl.LightningModule):
         self.embed_dim = embed_dim
         self.n_embed = n_embed
         self.image_key = image_key
-        LOGI("Creating Encoder ...")
+        LOGD("Creating Encoder ...")
         self.encoder = Encoder(**ddconfig)
-        LOGI("Creating Encoder ...")
+        LOGD("Creating Encoder ...")
         self.decoder = Decoder(**ddconfig)
-        LOGI("Creating Loss function ...")
+        LOGD("Creating Loss function ...")
         self.loss = instantiate_from_config(lossconfig)
-        LOGI("Creating Vector Quantizer ...")
+        LOGD("Creating Vector Quantizer ...")
         self.quantize = VectorQuantizer(n_embed, embed_dim, beta=0.25,
                                         remap=remap,
                                         sane_index_shape=sane_index_shape)
@@ -52,12 +52,12 @@ class VQModel(pl.LightningModule):
             self.monitor = monitor
         self.batch_resize_range = batch_resize_range
         if self.batch_resize_range is not None:
-            LOGI(f"{self.__class__.__name__}: Using per-batch resizing in range {batch_resize_range}.")
+            LOGD(f"{self.__class__.__name__}: Using per-batch resizing in range {batch_resize_range}.")
 
         self.use_ema = use_ema
         if self.use_ema:
             self.model_ema = LitEma(self)
-            LOGI(f"Keeping EMAs of {len(list(self.model_ema.buffers()))}.")
+            LOGD(f"Keeping EMAs of {len(list(self.model_ema.buffers()))}.")
 
         if ckpt_path is not None:
             self.init_from_ckpt(ckpt_path, ignore_keys=ignore_keys)
@@ -72,14 +72,14 @@ class VQModel(pl.LightningModule):
             self.model_ema.store(self.parameters())
             self.model_ema.copy_to(self)
             if context is not None:
-                LOGI(f"{context}: Switched to EMA weights")
+                LOGD(f"{context}: Switched to EMA weights")
         try:
             yield None
         finally:
             if self.use_ema:
                 self.model_ema.restore(self.parameters())
                 if context is not None:
-                    LOGI(f"{context}: Restored training weights")
+                    LOGD(f"{context}: Restored training weights")
 
     def init_from_ckpt(self, path, ignore_keys=list()):
         sd = torch.load(path, map_location="cpu")["state_dict"]
@@ -302,21 +302,22 @@ class AutoencoderKL(pl.LightningModule):
                  monitor=None,
                  ):
         super().__init__()
+        LOGI("Creating AutoencoderKL module")
         self.image_key = image_key
-        LOGI(">>>>>>>>> Instatiating Encoder")
+        LOGD("Instatiating Encoder")
         self.encoder = Encoder(**ddconfig)
-        LOGI(">>>>>>>>> Instatiating Decoder")
+        LOGD("Instatiating Decoder")
         self.decoder = Decoder(**ddconfig)
-        LOGI(">>>>>>>>> Instatiating Loss function")
+        LOGD("Instatiating Loss function")
         self.loss = instantiate_from_config(lossconfig)
 
-        LOGI(f">>>>>>>>> Creating quantized embeddings from {ddconfig['z_channels']} to {embed_dim}")
+        LOGD(f"Creating quantized embeddings from {ddconfig['z_channels']} to {embed_dim}")
         assert ddconfig["double_z"]
         self.quant_conv = torch.nn.Conv2d(2*ddconfig["z_channels"], 2*embed_dim, 1)
         self.post_quant_conv = torch.nn.Conv2d(embed_dim, ddconfig["z_channels"], 1)
         self.embed_dim = embed_dim
 
-        LOGI(f">>>>>>>>> initialization as:\nColorize: {colorize_nlabels}\nMonitor: {monitor}\nCheckpoint Path: {ckpt_path}")
+        LOGD(f"initialization as:\nColorize: {colorize_nlabels}\nMonitor: {monitor}\nCheckpoint Path: {ckpt_path}")
         if colorize_nlabels is not None:
             assert type(colorize_nlabels)==int
             self.register_buffer("colorize", torch.randn(3, colorize_nlabels, 1, 1))
@@ -325,7 +326,7 @@ class AutoencoderKL(pl.LightningModule):
         if ckpt_path is not None:
             self.init_from_ckpt(ckpt_path, ignore_keys=ignore_keys)
         
-        LOGI(">>>>>>>>>>>>> AutoencoderKL Model Initiated")
+        LOGI("AutoencoderKL Model Initiated")
 
     def init_from_ckpt(self, path, ignore_keys=list()):
         sd = torch.load(path, map_location="cpu")["state_dict"]
@@ -336,7 +337,7 @@ class AutoencoderKL(pl.LightningModule):
                     LOGW(f"Deleting key {k} from state_dict.")
                     del sd[k]
         self.load_state_dict(sd, strict=False)
-        LOGI(f">>>>>>>>> Model restored from: {path}")
+        LOGI(f"Model restored from: {path}")
 
     def encode(self, x):
         h = self.encoder(x)

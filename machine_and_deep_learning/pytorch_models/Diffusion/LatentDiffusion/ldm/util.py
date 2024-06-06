@@ -1,4 +1,4 @@
-from configs.conf import (LOGI, LOGE, LOGW)
+from configs.conf import (LOGI, LOGE, LOGW, LOGD)
 import importlib
 import torch
 import numpy as np
@@ -81,7 +81,8 @@ def instantiate_from_config(config):
             return None
         elif config == "__is_unconditional__":
             return None
-        raise KeyError("Expected key `target` to instantiate.")
+        LOGE("Expected key `target` to instantiate.")
+        raise KeyError
     return get_obj_from_str(config["target"])(**config.get("params", dict()))
 
 
@@ -95,7 +96,6 @@ def get_obj_from_str(string, reload=False):
 
 def _do_parallel_data_prefetch(func, Q, data, idx, idx_to_fn=False):
     # create dummy dataset instance
-
     # run prefetching
     if idx_to_fn:
         res = func(data, worker_id=idx)
@@ -105,35 +105,36 @@ def _do_parallel_data_prefetch(func, Q, data, idx, idx_to_fn=False):
     Q.put("Done")
 
 
-def parallel_data_prefetch(
-        func: callable, data, n_proc, target_data_type="ndarray", cpu_intensive=True, use_worker_id=False
-):
-    # if target_data_type not in ["ndarray", "list"]:
-    #     raise ValueError(
-    #         "Data, which is passed to parallel_data_prefetch has to be either of type list or ndarray."
-    #     )
+def parallel_data_prefetch(func: callable, data, n_proc, target_data_type="ndarray",
+                           cpu_intensive=True, use_worker_id=False):
     if isinstance(data, np.ndarray) and target_data_type == "list":
-        raise ValueError("list expected but function got ndarray.")
+        LOGE("list expected but function got ndarray.")
+        raise ValueError
     elif isinstance(data, abc.Iterable):
         if isinstance(data, dict):
-            LOGW(f"data ({data}) argument passed to parallel_data_prefetch is a dict: Using only its values and disregarding keys.")
+            LOGW(f"data ({data}) argument passed to parallel_data_prefetch is a dict:"
+                 " Using only its values and disregarding keys.")
             data = list(data.values())
         if target_data_type == "ndarray":
             data = np.asarray(data)
         else:
             data = list(data)
     else:
-        raise TypeError(
-            f"The data, that shall be processed parallel has to be either an np.ndarray or an Iterable, but is actually {type(data)}."
-        )
+        LOGE(
+            "The data, that shall be processed parallel has to be either an"
+            f" np.ndarray or an Iterable, but is actually {type(data)}.")
+        raise TypeError
 
     if cpu_intensive:
+        LOGD("Creating a multiprocessing queue as this is going to be cpu intensive.")
         Q = mp.Queue(1000)
         proc = mp.Process
     else:
+        LOGD("Local queue to be used to handle data retrieval")
         Q = Queue(1000)
         proc = Thread
     # spawn processes
+    LOGD(f"Spawning {n_proc} processes to prefetch data.")
     if target_data_type == "ndarray":
         arguments = [
             [func, Q, part, i, use_worker_id]
@@ -157,7 +158,7 @@ def parallel_data_prefetch(
         processes += [p]
 
     # start processes
-    LOGI(f"Start prefetching...")
+    LOGD(f"Start prefetching...")
     import time
 
     start = time.time()
@@ -176,20 +177,18 @@ def parallel_data_prefetch(
                 gather_res[res[0]] = res[1]
 
     except Exception as e:
-        LOGI(f"Exception:\n{str(e)}")
+        LOGE(f"Exception:\n{str(e)}")
         for p in processes:
             p.terminate()
-
         raise e
     finally:
         for p in processes:
             p.join()
-        LOGI(f"Prefetching complete. [{time.time() - start} sec.]")
+        LOGD(f"Prefetching complete. [{time.time() - start} sec.]")
 
     if target_data_type == 'ndarray':
         if not isinstance(gather_res[0], np.ndarray):
             return np.concatenate([np.asarray(r) for r in gather_res], axis=0)
-
         # order outputs
         return np.concatenate(gather_res, axis=0)
     elif target_data_type == 'list':
