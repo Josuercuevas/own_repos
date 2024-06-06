@@ -3,12 +3,52 @@ import argparse
 from time import time
 import logging
 from logging.handlers import RotatingFileHandler
-from unittests.sample_diffusion import SampleDiffusionUnconditional
+from inference.sample_diffusion import SampleDiffusionUnconditional
+from unittests.build_ldm import BuildTestLDM
+from unittests.build_ae import BuildTestAE
+from trainer.trainer_main import TrainerEngine
+
 
 def parse_arguments():
+    def str2bool(v):
+        if isinstance(v, bool):
+            return v
+        if v.lower() in ("yes", "true", "t", "y", "1"):
+            return True
+        elif v.lower() in ("no", "false", "f", "n", "0"):
+            return False
+        else:
+            raise argparse.ArgumentTypeError("Boolean value expected.")
+        
     parser = argparse.ArgumentParser(
-        prog="LDM model training & inference engines",
-        description="Trains and Generates samples from trained model"
+        prog="Main script for training and testing LDM models",
+        description="This script can be used to train and test LDM models. It can also be used to run unit-tests for the LDM model.")
+    parser.add_argument(
+        "-n",
+        "--name",
+        type=str,
+        const=True,
+        default="",
+        nargs="?",
+        help="postfix for logdir",
+    )
+    parser.add_argument(
+        "-r",
+        "--resume",
+        type=str,
+        const=True,
+        default="",
+        nargs="?",
+        help="resume from logdir or checkpoint in logdir",
+    )
+    parser.add_argument(
+        "-b",
+        "--base",
+        nargs="*",
+        metavar="base_config.yaml",
+        help="paths to base configs. Loaded from left-to-right. "
+        "Parameters can be overwritten or added with command-line options of the form `--key value`.",
+        default=list(),
     )
     parser.add_argument(
         "--debug_level",
@@ -24,8 +64,8 @@ def parse_arguments():
         dest="operation",
         type=str,
         default="sample",
-        choices=["train", "test"],
-        help="train/test model, sample an image(s), or generates a diffusion sequence [train, test, sample, genseq]",
+        choices=["train", "test_unconditional"],
+        help="train/test model, sample an image(s), or generates a diffusion sequence [train, test_unconditional]",
         required=False,
     )
     parser.add_argument(
@@ -40,7 +80,7 @@ def parse_arguments():
         "--logdir",
         dest="logdir",
         type=str,
-        default=None,
+        default='logs',
         help="Path to resource files (models, images, etc...)",
         required=False,
     )
@@ -52,14 +92,7 @@ def parse_arguments():
         required=False,
     )
     parser.add_argument(
-        "-r",
-        "--resume",
-        type=str,
-        nargs="?",
-        help="load from logdir or checkpoint in logdir",
-    )
-    parser.add_argument(
-        "-n",
+        "-ns",
         "--n_samples",
         type=int,
         nargs="?",
@@ -96,21 +129,60 @@ def parse_arguments():
         help="the batch size to use when generating the samples or to train the model",
         default=10
     )
-    
+    parser.add_argument(
+        "--no-test",
+        type=str2bool,
+        const=True,
+        default=False,
+        nargs="?",
+        help="disable test",
+    )
+    parser.add_argument(
+        "-p",
+        "--project",
+        help="name of new or path to existing project"
+    )
+    parser.add_argument(
+        "-s",
+        "--seed",
+        type=int,
+        default=23,
+        help="seed for seed_everything",
+    )
+    parser.add_argument(
+        "-f",
+        "--postfix",
+        type=str,
+        default="",
+        help="post-postfix for default name",
+    )
+    parser.add_argument(
+        "--scale_lr",
+        type=str2bool,
+        nargs="?",
+        const=True,
+        default=True,
+        help="scale base-lr by ngpu * batch_size * n_accumulate",
+    )
     return parser
 
 def run_unittests(dst_path=RES_PATH, run_ae=False, run_diffusion=False):
-    # unet model
-    raise NotImplementedError
+    if run_ae:
+        tester = BuildTestAE(modelcheckpoint=dst_path)
+        tester.check_model()
+    
+    if run_diffusion:
+        tester = BuildTestLDM(modelcheckpoint=dst_path)
+        tester.check_model()
 
 if __name__ == '__main__':
     parser = parse_arguments()
-    args = parser.parse_args()
+    args, unknown = parser.parse_known_args()
 
     starttime = time()
 
     # configure resource folder
-    if args.logdir is None:
+    if args.logdir == "":
         resource_folder_path = RES_PATH
     else:
         resource_folder_path = args.logdir
@@ -133,17 +205,15 @@ if __name__ == '__main__':
     if args.run_unittests:
         run_unittests(dst_path=resource_folder_path, run_ae=True, run_diffusion=True)
     
+    success = True
     try:
         # here we perform any operation requested by the user
         if args.operation == "train":
-            raise NotImplementedError(f"Training is not implemented yet")
-        elif args.operation == "test":
-            tester = SampleDiffusionUnconditional(arg_parser=parser)
-            success = tester.get_samples()
-        elif args.operation == "sample":
-            raise NotImplementedError(f"Sampling is not implemented yet")
-        elif args.operation == "genseq":
-            raise NotImplementedError(f"Sequence generation is not implemented yet")
+            trainer = TrainerEngine(arg_parser=parser)
+            trainer.run()
+        elif args.operation == "test_unconditional":
+            inferencer = SampleDiffusionUnconditional(arg_parser=parser)
+            inferencer.get_samples()
         else:
             LOGE(f"{args.operation} operation is not supported")
     except Exception as e:
