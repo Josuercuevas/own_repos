@@ -63,8 +63,7 @@ class ThreadPool(object):
             self.result_queues[func] = queue.Queue()
         self.task_queue.put((func, args, self.result_queues[func]))
 
-    def get_result(self, func,
-                   verbose_exceptions=True):  # returns (result, args)
+    def get_result(self, func, verbose_exceptions=True):  # returns (result, args)
         result, args = self.result_queues[func].get()
         if isinstance(result, ExceptionInfo):
             if verbose_exceptions:
