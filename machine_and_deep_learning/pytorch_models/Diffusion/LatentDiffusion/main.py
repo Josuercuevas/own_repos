@@ -100,6 +100,14 @@ def parse_arguments():
         default=50000
     )
     parser.add_argument(
+        "-bsize",
+        "--batchsize",
+        type=int,
+        nargs="?",
+        help="batch size to be used to generate samples",
+        default=2
+    )
+    parser.add_argument(
         "-e",
         "--eta",
         type=float,
@@ -121,13 +129,6 @@ def parse_arguments():
         nargs="?",
         help="number of steps for ddim and fastdpm sampling",
         default=50
-    )
-    parser.add_argument(
-        "--batch_size",
-        type=int,
-        nargs="?",
-        help="the batch size to use when generating the samples or to train the model",
-        default=10
     )
     parser.add_argument(
         "--no-test",

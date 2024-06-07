@@ -32,7 +32,7 @@ reset && clear && CUDA_VISIBLE_DEVICES=0,1,2,3 python main.py --base configs/lat
 
 ```shell
 # resume training with latest model and step
-reset && clear && CUDA_VISIBLE_DEVICES=0,1,2,3 python main.py --base configs/latent-diffusion/celebahq-ldm-vq-4.yaml --operation "train" --gpus 0,1,2,3 --resume logs/LOGDIR2USE/checkpoints/last.ckpt --debug_level 2 
+reset && clear && CUDA_VISIBLE_DEVICES=0,1,2,3 python main.py --base configs/latent-diffusion/celebahq-ldm-vq-4.yaml --operation "train" --gpus 0,1,2,3 --resume logs/LOGDIR2USE/checkpoints/last.ckpt --debug_level 2
 ```
 
 ## Testing Commands
@@ -48,5 +48,5 @@ If you don't want to train the models by yourself, please use the scripts in **i
 cp models/ldm/celeba256/config.yaml PATH2CHECKPOINT/
 
 # Run the following cmd-line assuming you don't want to run DDIM for sampling:
-reset && clear && CUDA_VISIBLE_DEVICES=0 python main.py -r PATH2CHECKPOINT/model.ckpt --debug_level 2 --operation "test_unconditional" -ns 2 --batch_size 2 --vanilla_sample
+reset && clear && CUDA_VISIBLE_DEVICES=0 python main.py -r PATH2CHECKPOINT/model.ckpt --debug_level 2 --operation "test_unconditional" -ns 2 --batchsize 2 --vanilla_sample
 ```

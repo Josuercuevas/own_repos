@@ -1,3 +1,4 @@
+from configs.conf import (LOGD, LOGI)
 import argparse, os, sys, glob
 import torch
 import time
@@ -32,7 +33,7 @@ def sample_classconditional(model, batch_size, class_label, steps=256, temperatu
                                     temperature=temperature, top_p=top_p)
     if verbose_time:
         sampling_time = time.time() - t1
-        print(f"Full sampling takes about {sampling_time:.2f} seconds.")
+        LOGD(f"Full sampling takes about {sampling_time:.2f} seconds.")
     x_sample = model.decode_to_img(index_sample, qzshape)
     log["samples"] = x_sample
     log["class_label"] = c_indices
@@ -52,7 +53,7 @@ def sample_unconditional(model, batch_size, steps=256, temperature=None, top_k=N
                                     temperature=temperature, top_p=top_p)
     if verbose_time:
         sampling_time = time.time() - t1
-        print(f"Full sampling takes about {sampling_time:.2f} seconds.")
+        LOGD(f"Full sampling takes about {sampling_time:.2f} seconds.")
     x_sample = model.decode_to_img(index_sample, qzshape)
     log["samples"] = x_sample
     return log
@@ -64,7 +65,7 @@ def run(logdir, model, batch_size, temperature, top_k, unconditional=True, num_s
     batches = [batch_size for _ in range(num_samples//batch_size)] + [num_samples % batch_size]
     if not unconditional:
         assert given_classes is not None
-        print("Running in pure class-conditional sampling mode. I will produce "
+        LOGI("Running in pure class-conditional sampling mode. I will produce "
               f"{num_samples} samples for each of the {len(given_classes)} classes, "
               f"i.e. {num_samples*len(given_classes)} in total.")
         for class_label in tqdm(given_classes, desc="Classes"):
@@ -74,7 +75,7 @@ def run(logdir, model, batch_size, temperature, top_k, unconditional=True, num_s
                                                temperature=temperature, top_k=top_k, top_p=top_p)
                 save_from_logs(logs, logdir, base_count=n * batch_size, cond_key=logs["class_label"])
     else:
-        print(f"Running in unconditional sampling mode, producing {num_samples} samples.")
+        LOGI(f"Running in unconditional sampling mode, producing {num_samples} samples.")
         for n, bs in tqdm(enumerate(batches), desc="Sampling"):
             if bs == 0: break
             logs = sample_unconditional(model, batch_size=bs, temperature=temperature, top_k=top_k, top_p=top_p)

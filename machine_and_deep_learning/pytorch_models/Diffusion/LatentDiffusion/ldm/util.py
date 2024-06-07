@@ -68,10 +68,9 @@ def mean_flat(tensor):
     return tensor.mean(dim=list(range(1, len(tensor.shape))))
 
 
-def count_params(model, verbose=False):
+def count_params(model):
     total_params = sum(p.numel() for p in model.parameters())
-    if verbose:
-        LOGI(f"{model.__class__.__name__} has {total_params * 1.e-6:.2f}MM params.")
+    LOGD(f"{model.__class__.__name__} has {total_params * 1.e-6:.2f}MM params.")
     return total_params
 
 
