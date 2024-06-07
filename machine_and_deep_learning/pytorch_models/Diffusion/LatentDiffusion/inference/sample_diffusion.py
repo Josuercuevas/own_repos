@@ -90,7 +90,7 @@ class SampleDiffusionUnconditional:
         LOGI(sampling_conf)
 
         self.__run(model=self.model, logdir=self.imglogdir, eta=self.opt.eta, vanilla=self.opt.vanilla_sample,
-                   n_samples=self.opt.n_samples, custom_steps=self.opt.custom_steps, batch_size=self.opt.batch_size,
+                   n_samples=self.opt.n_samples, custom_steps=self.opt.custom_steps, batch_size=self.opt.batchsize,
                    nplog=self.numpylogdir)
     
     def __run(self, model, logdir, batch_size=50, vanilla=False, custom_steps=None, eta=None, n_samples=50000, nplog=None):
