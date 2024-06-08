@@ -4,7 +4,7 @@ Ideas developed or integrated with other publicly available projects, this repos
 
 1. **[machine_and_deep_learning](./machine_and_deep_learning)**: Experiments conducted on machine and deep learning algorithms, where 3 main frameworks were used: [Caffe](http://caffe.berkeleyvision.org/), [Tensorflow](https://www.tensorflow.org/), [pytorch](https://pytorch.org/)
 
-	a. **[pytorch_models/Diffusion/](./machine_and_deep_learning/pytorch_models/Diffusion)**: own pytorch implementation of models such as [Denoising Diffusion Probabilistic Model (DDPM)](https://arxiv.org/pdf/2006.11239.pdf) with class conditioning and multi-gpu support.
+	a. **[pytorch_models/Diffusion/](./machine_and_deep_learning/pytorch_models/Diffusion)**: own pytorch implementation of models such as [Denoising Diffusion Probabilistic Model (DDPM)](https://arxiv.org/pdf/2006.11239.pdf), [Latent Diffusion Models](https://arxiv.org/pdf/2112.10752) with class conditioning and multi-gpu support.
 
 	b. **[FarePredictor](./machine_and_deep_learning/FarePredictor)**: Exprimenting with Machine Learning models for predicting Taxi ride fares.
 
