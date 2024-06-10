@@ -1,11 +1,11 @@
 # pytorch_diffusion + derived encoder decoder
-from configs.conf import (LOGI, LOGD, LOGE, LOGW)
+from configs.conf import (LOGI, LOGD)
 import math
 import torch
 import torch.nn as nn
 import numpy as np
 from einops import rearrange
-
+from ldm.modules.distributions.distributions import DiagonalGaussianDistribution
 from ldm.util import instantiate_from_config
 from ldm.modules.attention import LinearAttention
 
@@ -576,6 +576,7 @@ class Decoder(nn.Module):
 class SimpleDecoder(nn.Module):
     def __init__(self, in_channels, out_channels, *args, **kwargs):
         super().__init__()
+        LOGD("Downsampling input")
         self.model = nn.ModuleList([nn.Conv2d(in_channels, in_channels, 1),
                                      ResnetBlock(in_channels=in_channels,
                                                  out_channels=2 * in_channels,
@@ -589,7 +590,10 @@ class SimpleDecoder(nn.Module):
                                      nn.Conv2d(2*in_channels, in_channels, 1),
                                      Upsample(in_channels, with_conv=True)])
         # end
+        LOGD("Middle layers block creation")
         self.norm_out = Normalize(in_channels)
+
+        LOGD("Decoder block output creation")
         self.conv_out = torch.nn.Conv2d(in_channels,
                                         out_channels,
                                         kernel_size=3,
@@ -614,6 +618,7 @@ class UpsampleDecoder(nn.Module):
                  ch_mult=(2,2), dropout=0.0):
         super().__init__()
         # upsampling
+        LOGD("Upsampling Z-embeddings")
         self.temb_ch = 0
         self.num_resolutions = len(ch_mult)
         self.num_res_blocks = num_res_blocks
@@ -636,6 +641,7 @@ class UpsampleDecoder(nn.Module):
                 curr_res = curr_res * 2
 
         # end
+        LOGD("Output layer creation")
         self.norm_out = Normalize(block_in)
         self.conv_out = torch.nn.Conv2d(block_in,
                                         out_channels,

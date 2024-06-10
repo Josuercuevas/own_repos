@@ -2,7 +2,7 @@ import os
 import numpy as np
 import albumentations
 from torch.utils.data import Dataset
-
+from configs.conf import (LOGI)
 from taming.data.base import ImagePaths, NumpyPaths, ConcatDatasetWithIndex
 
 
@@ -28,7 +28,7 @@ class FacesBase(Dataset):
 
 class CelebAHQTrain(FacesBase):
     def __init__(self, size, keys=None):
-        print("Setting Up CelebAHQTrain to handle the dataset retrieval and generation ...")
+        LOGI("Setting Up CelebAHQTrain to handle the dataset retrieval and generation ...")
         super().__init__()
         root = "data/celebahq"
         with open("data/celebahqtrain.txt", "r") as f:
@@ -41,7 +41,7 @@ class CelebAHQTrain(FacesBase):
 
 class CelebAHQValidation(FacesBase):
     def __init__(self, size, keys=None):
-        print("Setting Up CelebAHQValidation to handle the dataset retrieval and generation ...")
+        LOGI("Setting Up CelebAHQValidation to handle the dataset retrieval and generation ...")
         super().__init__()
         root = "data/celebahq"
         with open("data/celebahqvalidation.txt", "r") as f:
@@ -54,7 +54,7 @@ class CelebAHQValidation(FacesBase):
 
 class FFHQTrain(FacesBase):
     def __init__(self, size, keys=None):
-        print("Setting Up FFHQTrain to handle the dataset retrieval and generation ...")
+        LOGI("Setting Up FFHQTrain to handle the dataset retrieval and generation ...")
         super().__init__()
         root = "data/ffhq"
         with open("data/ffhqtrain.txt", "r") as f:
@@ -66,7 +66,7 @@ class FFHQTrain(FacesBase):
 
 class FFHQValidation(FacesBase):
     def __init__(self, size, keys=None):
-        print("Setting Up FFHQValidation to handle the dataset retrieval and generation ...")
+        LOGI("Setting Up FFHQValidation to handle the dataset retrieval and generation ...")
         super().__init__()
         root = "data/ffhq"
         with open("data/ffhqvalidation.txt", "r") as f:
@@ -79,7 +79,7 @@ class FFHQValidation(FacesBase):
 class FacesHQTrain(Dataset):
     # CelebAHQ [0] + FFHQ [1]
     def __init__(self, size, keys=None, crop_size=None, coord=False):
-        print("Setting Up FacesHQTrain to handle the dataset retrieval and generation ...")
+        LOGI("Setting Up FacesHQTrain to handle the dataset retrieval and generation ...")
         d1 = CelebAHQTrain(size=size, keys=keys)
         d2 = FFHQTrain(size=size, keys=keys)
         self.data = ConcatDatasetWithIndex([d1, d2])
@@ -112,7 +112,7 @@ class FacesHQTrain(Dataset):
 class FacesHQValidation(Dataset):
     # CelebAHQ [0] + FFHQ [1]
     def __init__(self, size, keys=None, crop_size=None, coord=False):
-        print("Setting Up FacesHQValidation to handle the dataset retrieval and generation ...")
+        LOGI("Setting Up FacesHQValidation to handle the dataset retrieval and generation ...")
         d1 = CelebAHQValidation(size=size, keys=keys)
         d2 = FFHQValidation(size=size, keys=keys)
         self.data = ConcatDatasetWithIndex([d1, d2])

@@ -100,6 +100,7 @@ class VQModel(pl.LightningModule):
             self.model_ema(self)
 
     def encode(self, x):
+        LOGD("Encoding with VQModel interface")
         h = self.encoder(x)
         h = self.quant_conv(h)
         quant, emb_loss, info = self.quantize(h)
@@ -111,6 +112,7 @@ class VQModel(pl.LightningModule):
         return h
 
     def decode(self, quant):
+        LOGD("Decoding with VQModel interface")
         quant = self.post_quant_conv(quant)
         dec = self.decoder(quant)
         return dec
@@ -275,15 +277,19 @@ class VQModelInterface(VQModel):
         LOGI("VQModelInterface initialized!")
 
     def encode(self, x):
+        LOGD("Encoding input with VQModelInterface")
         h = self.encoder(x)
         h = self.quant_conv(h)
         return h
 
     def decode(self, h, force_not_quantize=False):
         # also go through quantization layer
+        LOGD("Decoding prediction with VQModelInterface")
         if not force_not_quantize:
+            LOGD("force_not_quantize is not enabled")
             quant, emb_loss, info = self.quantize(h)
         else:
+            LOGD("force_not_quantize is enabled")
             quant = h
         quant = self.post_quant_conv(quant)
         dec = self.decoder(quant)
@@ -340,12 +346,14 @@ class AutoencoderKL(pl.LightningModule):
         LOGI(f"Model restored from: {path}")
 
     def encode(self, x):
+        LOGD("Encoding with AutoencoderKL interface")
         h = self.encoder(x)
         moments = self.quant_conv(h)
         posterior = DiagonalGaussianDistribution(moments)
         return posterior
 
     def decode(self, z):
+        LOGD("Encoding with AutoencoderKL interface")
         z = self.post_quant_conv(z)
         dec = self.decoder(z)
         return dec
@@ -447,9 +455,11 @@ class IdentityFirstStage(torch.nn.Module):
         super().__init__()
 
     def encode(self, x, *args, **kwargs):
+        LOGD("Encoding with IdentityFirstStage interface")
         return x
 
     def decode(self, x, *args, **kwargs):
+        LOGD("Encoding with IdentityFirstStage interface")
         return x
 
     def quantize(self, x, *args, **kwargs):
