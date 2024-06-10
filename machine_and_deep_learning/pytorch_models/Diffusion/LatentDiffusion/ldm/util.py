@@ -1,10 +1,8 @@
-from configs.conf import (LOGI, LOGE, LOGW, LOGD)
+from configs.conf import (LOGE, LOGW, LOGD)
 import importlib
 import torch
 import numpy as np
 from collections import abc
-from einops import rearrange
-from functools import partial
 
 import multiprocessing as mp
 from threading import Thread
@@ -94,8 +92,7 @@ def get_obj_from_str(string, reload=False):
 
 
 def _do_parallel_data_prefetch(func, Q, data, idx, idx_to_fn=False):
-    # create dummy dataset instance
-    # run prefetching
+    # create dummy dataset instance run prefetching
     if idx_to_fn:
         res = func(data, worker_id=idx)
     else:
