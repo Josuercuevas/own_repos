@@ -45,7 +45,7 @@ PARAM_SETTING = {
     "beta_schedule": "linear", # default in paper https://arxiv.org/pdf/2006.11239.pdf
     "loss_type": "l2_mse",
     "use_labels": False, # if we want to use label conditioning   ##############################################################################################
-    "initial_channels": 128,
+    "initial_channels": 128,  ### make sure about this part, 256? maybe
     "channel_mults": (1, 2, 2, 2), # design of PixelCNN++ (https://github.com/openai/pixel-cnn)
     "num_timesteps": 1000, # appendix B in paper https://arxiv.org/pdf/2006.11239.pdf
     "num_res_blocks": 2, # appendix B in paper https://arxiv.org/pdf/2006.11239.pdf

@@ -9,6 +9,11 @@ import numpy as np
 from time import time
 import torchvision
 import os
+from trainer.dct2rgb import to_img
+
+# tensorboard - added on 2024.07.10
+from torch.utils.tensorboard import SummaryWriter
+writer = SummaryWriter("runs/training_0721")
 
 DEBUG_IMAGES = False
 MAX_BATCH_VISUALIZE = 10
@@ -44,15 +49,39 @@ class CustomDataset(Dataset):
         maxCb = 1017
         maxCr = 1017
 
-        Y_norm = (Y-minY)/(maxY-minY) 
-        Cb_norm = (Cb-minCb)/(maxCb-minCb)
-        Cr_norm = (Cr-minCr)/(maxCr-minCr)
+        Y_norm = (2*(Y-minY))/(maxY-minY) - 1
+        Cb_norm = (2*(Cb-minCb))/(maxCb-minCb) - 1
+        Cr_norm = (2*(Cr-minCr))/(maxCr-minCr) - 1
+
+        # Mean
+        # train_mean_Y = -1.7078990960121154
+        # train_mean_Cb = -1.2296734032101102
+        # train_mean_Cr = 1.6260130441453722
+
+        # test_mean_Y = -1.7423905782699585
+        # test_mean_Cb = -1.2369825375874837
+        # test_mean_Cr = 1.6356576512654621
+
+
+        # # STD
+        # train_std_Y = 66.803307451942
+        # train_std_Cb = 17.145789752391092
+        # train_std_Cr = 20.971794797181587
+
+        # test_std_Y = 66.54228684466182
+        # test_std_Cb = 17.06657030340398
+        # test_std_Cr = 20.978077264567894
+
+        # Y_norm = (Y-train_mean_Y)/(train_std_Y) 
+        # Cb_norm = (Cb-train_mean_Cb)/(train_std_Cb)
+        # Cr_norm = (Cr-train_mean_Cr)/(train_std_Cr)
+
 
         image = 0
         image = np.concatenate((Y_norm, Cb_norm, Cr_norm), axis=0)
 
         # Convert the array to a tensor (for training)
-        image = torch.from_numpy(image)
+        image = torch.from_numpy(image).clip(-1, 1)
 
         # Assign a label (even though we don't need it)
         label = [0 for x in self.img_labels[idx]]
@@ -157,11 +186,20 @@ class DiffusionModelTrainer:
                 if iteration % self.configs["checkpoint_rate"] == 0:
                     LOGI("getting new data samples")
 
-                x, y = next(self.train_loader)
 
-                # send to accelator if configured
-                if iteration % self.configs["checkpoint_rate"] == 0:
-                    LOGI(f"Sending samples to {self.device}")
+                x, y = next(self.train_loader)
+                # print(f"shape = {x.shape}, min = {torch.min(x)}, max = {torch.max(x)}")
+                
+                # CHECKING THAT THE DATA THAT GOES INTO THE MODEL IS CORRECT
+                # print("converting X to array")
+                # x_array = x.cpu().detach()
+
+                # print("visualizing it, this shape btw --> ", x_array.shape)
+                # to_img(x_array)
+
+                # # send to accelator if configured
+                # if iteration % self.configs["checkpoint_rate"] == 0:
+                #     LOGI(f"Sending samples to {self.device}")
 
                 x = x.to(self.device)
                 y = y.to(self.device)
@@ -195,6 +233,8 @@ class DiffusionModelTrainer:
                 output_loss.backward()
                 # update the model weights
                 self.optimizer.step()
+
+                writer.add_scalar('Training Loss', output_loss.item(), iteration)
 
                 # now we update things for EMA
                 if iteration % self.configs["checkpoint_rate"] == 0:
@@ -247,33 +287,33 @@ class DiffusionModelTrainer:
                             start_class = 0
                             end_class = n_classes_2use
                         
-                        if self.dataparallel:
-                            samples = self.diffusion_model.module.sample(batch_size=n_classes_2use,
-                                                                            device=self.device,
-                                                                            use_ema=True,
-                                                                            gen_seq=False,
-                                                                            yclass=torch.arange(start=start_class, 
-                                                                                                end=end_class, step=1,
-                                                                                                device=self.device)
-                                                                        )
-                        else:
-                            samples = self.diffusion_model.sample(batch_size=n_classes_2use,
-                                                                    device=self.device,
-                                                                    use_ema=True,
-                                                                    gen_seq=False,
-                                                                    yclass=torch.arange(start=start_class, 
-                                                                                        end=end_class, step=1,
-                                                                                        device=self.device)
-                                                                )
-                    else:
-                        # generate MAX_BATCH_VISUALIZE samples
-                        if self.dataparallel:
-                            samples = self.diffusion_model.module.sample(batch_size=MAX_BATCH_VISUALIZE,
-                                                                            device=self.device, use_ema=True,
-                                                                            gen_seq=False)
-                        else:
-                            samples = self.diffusion_model.sample(batch_size=MAX_BATCH_VISUALIZE, device=self.device,
-                                                                    use_ema=True, gen_seq=False)
+                        # if self.dataparallel:
+                        #     samples = self.diffusion_model.module.sample(batch_size=n_classes_2use,
+                        #                                                     device=self.device,
+                        #                                                     use_ema=True,
+                        #                                                     gen_seq=False,
+                        #                                                     yclass=torch.arange(start=start_class, 
+                        #                                                                         end=end_class, step=1,
+                        #                                                                         device=self.device)
+                        #                                                 )
+                        # else:
+                        #     samples = self.diffusion_model.sample(batch_size=n_classes_2use,
+                        #                                             device=self.device,
+                        #                                             use_ema=True,
+                        #                                             gen_seq=False,
+                        #                                             yclass=torch.arange(start=start_class, 
+                        #                                                                 end=end_class, step=1,
+                        #                                                                 device=self.device)
+                                                                # )
+                    # else:
+                    #     # generate MAX_BATCH_VISUALIZE samples
+                    #     if self.dataparallel:
+                    #         samples = self.diffusion_model.module.sample(batch_size=MAX_BATCH_VISUALIZE,
+                    #                                                         device=self.device, use_ema=True,
+                    #                                                         gen_seq=False)
+                    #     else:
+                    #         samples = self.diffusion_model.sample(batch_size=MAX_BATCH_VISUALIZE, device=self.device,
+                    #                                                 use_ema=True, gen_seq=False)
 
                     # keeping in perspective
                     test_loss /= len(self.test_loader)
