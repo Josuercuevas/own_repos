@@ -1,3 +1,9 @@
+# Update 10.27.2024:
+
+Please download the dataset (cifar10_128) to train this network from this link: https://drive.google.com/file/d/1XMC9CKqIb3Kq8UHdi0nScZkcyDBOBNu7/view?usp=sharing
+
+The above dataset contains the images for airplanes and cats which were resized using AI to 128x128 pixels. Then we converted them to DCT.
+
 # Denoising Difussion Probability Models
 
 Pytorch implementation of the paper [Denoising Diffusion Probabilistic Model (DDPM)](https://arxiv.org/pdf/2006.11239.pdf) with **multi-gpu support**. DDPM is a parameterized Markov chain trained using variational inference to produce samples matching the data after finite time. Transitions of this chain are learned to reverse a diffusion process, which is a Markov chain that gradually adds noise to the data in the opposite direction of sampling until signal is destroyed (figure below). When the diffusion consists of small amounts of Gaussian noise, it is sufficient to set the sampling chain transitions to conditional Gaussians too, allowing for a particularly simple neural network parameterization.
