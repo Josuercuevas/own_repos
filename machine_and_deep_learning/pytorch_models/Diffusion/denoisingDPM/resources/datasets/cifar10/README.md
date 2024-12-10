@@ -6,5 +6,5 @@ The two scripts shared in this folder prepare the CIFAR10 dataset for training a
 # uncommend the 1st and last lines if you need to
 ./download_data.sh
 
-python3 preprocess_data.py
+python3 prepare_dataset.py
 ```

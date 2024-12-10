@@ -33,7 +33,7 @@ RES_PATH = 'resources'
 
 PARAM_SETTING = {
     "learning_rate": 2e-4, # from paper (https://arxiv.org/pdf/2006.11239.pdf) for images with resolution below 256x256
-    "batch_size": 256,  # depends on memory
+    "batch_size": 192,  # depends on memory
     "iterations": 800000, # in the paper they trained for 800k iterations, for 1000 steps
     "checkpoint_rate": 1000, # save checkpoint every 1000 iterations
     "model_snapshot": "models/latest-model.pth", # latest checkpoint snapshot
@@ -63,5 +63,5 @@ PARAM_SETTING = {
     "img_size": (32, 32), # H and W of the image to be processed
     "image_pad": 0,
     "dataparallelism": True, # to process on multiple devices
-    "num_workers": 8, # number of workers for data loading
+    "num_workers": 32, # number of workers for data loading
 }
