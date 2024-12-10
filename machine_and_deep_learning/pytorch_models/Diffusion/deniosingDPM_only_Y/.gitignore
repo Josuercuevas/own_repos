@@ -1,0 +1,14 @@
+*.idea*
+*.vscode*
+*.ipy*
+*__pycache__*
+*.DS_Store*
+resources/datasets/test-images/*
+resources/datasets/tiny-imagenet/tiny-imagenet-200/*
+resources/datasets/cifar10/cifar10_dataset/*
+*.zip
+*tar.gz
+*.pth*
+*.png*
+*latest-iteration.txt*
+runs/*
