@@ -12,3 +12,4 @@ resources/datasets/cifar10/cifar10_dataset/*
 *.png*
 *latest-iteration.txt*
 runs/*
+*.npy*
