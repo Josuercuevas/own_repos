@@ -131,7 +131,7 @@ class GaussianDiffusion(nn.Module):
 
         # This is the starting point in the denoising process, X(T)
         LOGD("Getting noise samples")
-        print("Getting noise samples")
+        print(f"Getting noise samples {batch_size}-{self.img_channels}-{self.img_size}")
         x = torch.randn(batch_size, self.img_channels, *self.img_size, device=device)
 
         if gen_seq:

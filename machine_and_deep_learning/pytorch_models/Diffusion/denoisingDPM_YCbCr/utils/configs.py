@@ -33,9 +33,9 @@ RES_PATH = 'resources'
 
 PARAM_SETTING = {
     "learning_rate": 2e-4, # from paper (https://arxiv.org/pdf/2006.11239.pdf) for images with resolution below 256x256
-    "batch_size": 2,  # depends on memory
+    "batch_size": 16,  # depends on memory
     "iterations": 800000, # in the paper they trained for 800k iterations, for 1000 steps
-    "checkpoint_rate": 500, # save checkpoint every 1000 iterations
+    "checkpoint_rate": 1000, # save checkpoint every 1000 iterations
     "model_snapshot": "models/latest-model.pth", # latest checkpoint snapshot
     "optimizer_snapshot": "optimizers/latest-optimizer.pth", # latest optimizer snapshot
     "iteration_snapshot": "optimizers/latest-iteration.txt", # latest iteration checkpoint
@@ -45,11 +45,11 @@ PARAM_SETTING = {
     "beta_schedule": "linear", # default in paper https://arxiv.org/pdf/2006.11239.pdf
     "loss_type": "l2_mse",
     "use_labels": True, # if we want to use label conditioning   ##############################################################################################
-    "initial_channels": 384,  ### make sure about this part, 256? maybe
+    "initial_channels": 384,  ### as we already have a large enough initial ammount of channels use the same
     "channel_mults": (1, 2, 2, 2), # design of PixelCNN++ (https://github.com/openai/pixel-cnn)
     "num_timesteps": 1000, # appendix B in paper https://arxiv.org/pdf/2006.11239.pdf
     "num_res_blocks": 2, # appendix B in paper https://arxiv.org/pdf/2006.11239.pdf
-    "time_emb_dim": 512, # appendix B in paper https://arxiv.org/pdf/2006.11239.pdf
+    "time_emb_dim": 1536, # appendix B in paper https://arxiv.org/pdf/2006.11239.pdf
     "norm": "group_norm",
     "dropout": 0.1, # appendix B in paper https://arxiv.org/pdf/2006.11239.pdf
     "activation": "silu", # appendix B in paper https://arxiv.org/pdf/2006.11239.pdf
@@ -63,5 +63,5 @@ PARAM_SETTING = {
     "img_size": (16, 16), # H and W of the image to be processed ############################################################################################
     "image_pad": 0,
     "dataparallelism": True, # to process on multiple devices
-    "num_workers": 8, # number of workers for data loading
+    "num_workers": 64, # number of workers for data loading
 }

@@ -17,7 +17,7 @@ import cv2
 from torch.utils.tensorboard import SummaryWriter
 writer = SummaryWriter("runs/training_0802")
 
-DEBUG_IMAGES = True
+DEBUG_IMAGES = False
 MAX_BATCH_VISUALIZE = 10
 
 def reshape(arr):
@@ -135,10 +135,11 @@ def DCT_to_RGB(x):
 
     # DCT to RGB
     image = dct_2_rgb(Y,Cb,Cr)
-    return image
 
     # cv2.imshow("Reconstructed Image", image)
     # cv2.waitKey()
+
+    return image
 
 
 
@@ -169,7 +170,9 @@ class CustomDataset(Dataset):
     def __getitem__(self, idx):
 
         # Get the path for the array
-        img_path = os.path.join(self.img_dir, self.img_labels[idx])   # C:\Users\vminanda\Desktop\josue code - diffussion\own_repos-master\own_repos-master\machine_and_deep_learning\pytorch_models\Diffusion\denoisingDPM\resources\datasets\concatenated_outputs\train\00000-20240603T070734Z-001_00007.npy, C:\Users\vminanda\Desktop\josue code - diffussion\own_repos-master\own_repos-master\machine_and_deep_learning\pytorch_models\Diffusion\denoisingDPM\resources\datasets\concatenated_outputs\train\00000-20240603T070734Z-001_00152.npy 
+        # C:\Users\vminanda\Desktop\josue code - diffussion\own_repos-master\own_repos-master\machine_and_deep_learning\pytorch_models\Diffusion\denoisingDPM\resources\datasets\concatenated_outputs\train\00000-20240603T070734Z-001_00007.npy,
+        # C:\Users\vminanda\Desktop\josue code - diffussion\own_repos-master\own_repos-master\machine_and_deep_learning\pytorch_models\Diffusion\denoisingDPM\resources\datasets\concatenated_outputs\train\00000-20240603T070734Z-001_00152.npy 
+        img_path = os.path.join(self.img_dir, self.img_labels[idx])
         
         # Load the concatenated array
         image = np.load(img_path, allow_pickle=True)
@@ -245,42 +248,41 @@ class DiffusionModelTrainer:
     def __init_dataloader(self):
         LOGI("Initializing dataloaders")
         # iterator for training set, remember things are normalized from [0, 1] when using torchvision
-        train_dataset = CustomDataset(
-            img_dir=f"{self.resources}/{self.configs['image_datapath']}/train/")
-        
-
+        train_dataset = CustomDataset(img_dir=f"{self.resources}/{self.configs['image_datapath']}/train/")
         if DEBUG_IMAGES:
             # debug images to make sure we are dealing with proper values
+            max_print = 4
             for x, y in train_dataset:
-                LOGI(f"Training Image shape: {x.shape}, Labels are: {y}")
-                LOGI(f"Training Image pixels values range [{torch.min(x)}, {torch.max(x)}]")
-                _ = DCT_to_RGB(x)
-                break
+                if max_print > 0:
+                    LOGI(f"Training Image shape: {x.shape}, Labels are: {y}")
+                    LOGI(f"Training Image pixels values range [{torch.min(x)}, {torch.max(x)}]")
+                    _ = DCT_to_RGB(x)
+                else:
+                    break
+                max_print -= 1
 
         # iterator for testing set, remember things are normalized from [0, 1] when using torchvision
-        test_dataset = CustomDataset(
-            img_dir=f"{self.resources}/{self.configs['image_datapath']}/test/",
-            transform=torchvision.transforms.Compose([
-                torchvision.transforms.ToTensor()
-                ]))
+        test_dataset = CustomDataset(img_dir=f"{self.resources}/{self.configs['image_datapath']}/test/")
         if DEBUG_IMAGES:
             # debug images to make sure we are dealing with proper values
+            max_print = 4
             for x, y in test_dataset:
-                LOGI(f"Testing Image shape: {x.shape}, Labels are: {y}")
-                LOGI(f"Testing Image pixels values range [{torch.min(x)}, {torch.max(x)}]")
-                _ = DCT_to_RGB(x)
-                break
-
+                if max_print > 0:
+                    LOGI(f"Testing Image shape: {x.shape}, Labels are: {y}")
+                    LOGI(f"Testing Image pixels values range [{torch.min(x)}, {torch.max(x)}]")
+                    _ = DCT_to_RGB(x)
+                else:
+                    break
+                max_print -= 1
+        
         # function that loads the dataset for training, and rollsback if needed
         # for diffusion models we don't train epochs but steps!
         self.train_loader = infinite_loader(DataLoader(train_dataset, batch_size=self.configs["batch_size"],
-                                                shuffle=True, drop_last=True, 
-                                                num_workers=self.configs["num_workers"])
-                                        )
+                                                       shuffle=True, drop_last=True, num_workers=self.configs["num_workers"]))
 
         # no need to cycle it as is done once, during testing
         self.test_loader = DataLoader(test_dataset, shuffle=True, batch_size=self.configs["batch_size"], drop_last=True,
-                                num_workers=self.configs["num_workers"])
+                                      num_workers=self.configs["num_workers"])
 
     def fit(self):
         LOGI("Starting Diffusion Model Training")
@@ -446,7 +448,7 @@ class DiffusionModelTrainer:
                     LOGW("creating a sample generated at this time")
                     dct_example = samples[0]
                     img_ = DCT_to_RGB(dct_example)
-                    cv2.imwrite(f'resources/sample_images/img_at_iter#{iteration}.png', img_)
+                    cv2.imwrite(f'resources/sample_images/train/img_at_iter#{iteration}.png', img_)
 
                     # LOGI("Dumping some images for later visualization")
                     # # samples generated, and undo the normalization from [-1, 1] so now it will be from [0, 1]

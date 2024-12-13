@@ -233,7 +233,7 @@ class ResidualBlock(nn.Module):
 
 class AutoEncoderUnet(nn.Module):
     """
-    Unet-based autoencoder Model to be used to estimate the noise added to the image at different timestemps. For reference please check
+    Unet-based autoencoder Model to be used to estimate the noise added to the image at different timesteps. For reference please check
     https://arxiv.org/pdf/2006.11239.pdf
 
     Input:
@@ -264,7 +264,7 @@ class AutoEncoderUnet(nn.Module):
         self.image_pad = image_pad
         self.num_classes = num_classes
 
-        # projects 3-channels images to initial_channels feature maps
+        # projects YCbCr-channels images to initial_channels feature maps
         self.initial_map = nn.Conv2d(img_channels, initial_channels, 3, padding=1)
 
         if time_emb_dim is not None:
