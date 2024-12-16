@@ -32,8 +32,8 @@ SUPPORTED_NOISE_SCHEDULES = ["cosine", "linear"]
 RES_PATH = 'resources'
 
 PARAM_SETTING = {
-    "learning_rate": 2e-4, # from paper (https://arxiv.org/pdf/2006.11239.pdf) for images with resolution below 256x256
-    "batch_size": 16,  # depends on memory
+    "learning_rate": 2e-6, # from paper (https://arxiv.org/pdf/2006.11239.pdf) for images with resolution below 256x256
+    "batch_size": 512,  # depends on memory
     "iterations": 800000, # in the paper they trained for 800k iterations, for 1000 steps
     "checkpoint_rate": 1000, # save checkpoint every 1000 iterations
     "model_snapshot": "models/latest-model.pth", # latest checkpoint snapshot
@@ -45,11 +45,11 @@ PARAM_SETTING = {
     "beta_schedule": "linear", # default in paper https://arxiv.org/pdf/2006.11239.pdf
     "loss_type": "l2_mse",
     "use_labels": True, # if we want to use label conditioning   ##############################################################################################
-    "initial_channels": 384,  ### as we already have a large enough initial ammount of channels use the same
+    "initial_channels": 192,  ### as we already have a large enough initial ammount of channels use the same
     "channel_mults": (1, 2, 2, 2), # design of PixelCNN++ (https://github.com/openai/pixel-cnn)
     "num_timesteps": 1000, # appendix B in paper https://arxiv.org/pdf/2006.11239.pdf
     "num_res_blocks": 2, # appendix B in paper https://arxiv.org/pdf/2006.11239.pdf
-    "time_emb_dim": 1536, # appendix B in paper https://arxiv.org/pdf/2006.11239.pdf
+    "time_emb_dim": 512, # appendix B in paper https://arxiv.org/pdf/2006.11239.pdf
     "norm": "group_norm",
     "dropout": 0.1, # appendix B in paper https://arxiv.org/pdf/2006.11239.pdf
     "activation": "silu", # appendix B in paper https://arxiv.org/pdf/2006.11239.pdf
