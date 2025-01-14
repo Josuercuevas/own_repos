@@ -305,9 +305,9 @@ class DiffusionModelTrainer:
                 
 
                 x, y = next(self.train_loader)
-                # if iteration == 1:
-                #     writer.add_graph(self.diffusion_model, x)
-                #     writer.close()
+                if iteration == 1:
+                    writer.add_graph(self.diffusion_model, x)
+                    writer.close()
                 # print(f"shape = {x.shape}, min = {torch.min(x)}, max = {torch.max(x)}")
                 
                 # CHECKING THAT THE DATA THAT GOES INTO THE MODEL IS CORRECT
@@ -358,7 +358,7 @@ class DiffusionModelTrainer:
                 # update the model weights
                 self.optimizer.step()
 
-                # writer.add_scalar('Training Loss', output_loss.item(), iteration)
+                writer.add_scalar('Training Loss', output_loss.item(), iteration)
 
                 # now we update things for EMA
                 if iteration % self.configs["checkpoint_rate"] == 0:
@@ -374,6 +374,7 @@ class DiffusionModelTrainer:
                     # do some test and check performance
                     LOGI("Running the model in testing mode")
                     test_loss = 0
+                    test_counter = 0
                     with torch.no_grad():
                         if self.dataparallel:
                             self.diffusion_model.module.eval() # for model only
@@ -393,6 +394,7 @@ class DiffusionModelTrainer:
                                 output_loss = output_loss.mean()
 
                             test_loss += output_loss.item()
+                            test_counter += 1
                     
                     # same idea as in training, but here we Sample, so we need to provide info on the labels
                     # basically generate 1 sample per class, example the input y = [0, 1, ..., 9]
@@ -440,7 +442,7 @@ class DiffusionModelTrainer:
                                                                     use_ema=True, gen_seq=False)
 
                     # keeping in perspective
-                    test_loss /= len(self.test_loader)
+                    test_loss /= test_counter
                     train_loss /= self.configs["checkpoint_rate"]
                     iter_time_sec = (float(time() - start_time) / self.configs["checkpoint_rate"])
                     LOGW(f"Iteration-{iteration}: TestLoss-{test_loss}, TrainLoss-{train_loss}, sec/iter: {iter_time_sec}")

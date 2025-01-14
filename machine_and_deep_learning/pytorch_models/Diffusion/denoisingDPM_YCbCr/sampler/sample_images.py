@@ -93,13 +93,18 @@ class DiffusionModelSampler:
                 samples = samples.numpy()
 
                 # print(np.max(samples), np.min(samples))
+
+                from trainer.dct2rgb import to_img
+                to_img(samples)
                 
                 print("saving generated images....", samples.shape)
                 np.save(f"{self.resources}/doc/generated_images_072fixed.npy", samples, allow_pickle=True)
                 # LOGI(f"Set of images to be dumped are of shape: {samples.shape}")
                 # x_offset = 0
                 # for idx in range(samples.shape[0]):
-                #     im = Image.fromarray(((samples[idx]*255).astype(np.uint8)).clip(0, 255))
+                #     smp2use = ((samples[idx]*255).astype(np.uint8)).clip(0, 255)
+                #     LOGI(f"RANGE in IMAGE is [{np.max(smp2use)}, {np.min(smp2use)}]")
+                #     im = Image.fromarray(smp2use)
                 #     LOGD(f"Image converted is of shape: {im.size}")
                 #     new_im.paste(im, (x_offset,0))
                 #     x_offset += im.size[0]
