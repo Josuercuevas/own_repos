@@ -3,6 +3,8 @@ from utils.configs import (LOGE, LOGI, LOGD)
 from PIL import Image
 import torch
 import numpy as np
+import cv2
+from sampler.dct_to_rgb_converter import to_img
 
 
 class DiffusionModelSampler:
@@ -43,6 +45,7 @@ class DiffusionModelSampler:
             total_images = 24
         
         mosaic_image = []
+        img_counter = 0
         with torch.no_grad():
             if self.dataparallel:
                 self.diffusion_model.module.eval() # for model only
@@ -73,17 +76,14 @@ class DiffusionModelSampler:
                                                                                     device=self.device)
                                                             )
                 else:
-                    print("not using labels")
                     if self.dataparallel:
-                        print("starting to gen samples with paralalel")
                         samples = self.diffusion_model.module.sample(batch_size=(end_smp-start_smp),
                                                                         device=self.device, use_ema=True,
                                                                         gen_seq=False)
                     else:
-                        print("starting to gen samples WITHOUT paralalel")
                         samples = self.diffusion_model.sample(batch_size=(end_smp-start_smp), device=self.device,
                                                                 use_ema=True, gen_seq=False)
-                print("line 82 ok")
+
                 LOGI("Dumping some images for later visualization")
                 # samples generated, and undo the normalization from [-1, 1] so now it will be from [0, 1]
                 # then channels are moved at the end for reconstruction/visualization
@@ -92,35 +92,30 @@ class DiffusionModelSampler:
                 LOGI(f"Horizontal concatenated image is of size: {new_im.size}")
                 samples = samples.numpy()
 
-                # print(np.max(samples), np.min(samples))
-
-                from trainer.dct2rgb import to_img
-                to_img(samples)
-                
+                '''
+                The code below (lines 96 - 121) was modified to handle the DCT outputs
+                '''
+                # Save samples as numpy array (individually)              
                 print("saving generated images....", samples.shape)
-                np.save(f"{self.resources}/doc/generated_images_072fixed.npy", samples, allow_pickle=True)
-                # LOGI(f"Set of images to be dumped are of shape: {samples.shape}")
-                # x_offset = 0
-                # for idx in range(samples.shape[0]):
-                #     smp2use = ((samples[idx]*255).astype(np.uint8)).clip(0, 255)
-                #     LOGI(f"RANGE in IMAGE is [{np.max(smp2use)}, {np.min(smp2use)}]")
-                #     im = Image.fromarray(smp2use)
-                #     LOGD(f"Image converted is of shape: {im.size}")
-                #     new_im.paste(im, (x_offset,0))
-                #     x_offset += im.size[0]
-                # mosaic_image.append(new_im)
-                # print("line 98 ok")
-
+                np.save(f"{self.resources}/doc/generated_images_{img_counter}.npy", samples, allow_pickle=True)
+                img_counter += 1
+                
+                # Convert to RGB image and accumulate into mosaic list
+                for idx in range(samples.shape[0]):
+                    im = to_img(samples[idx])
+                    mosaic_image.append(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
+                
                 # shift things for next iteration
                 start_smp = end_smp
                 end_smp += self.configs["num_classes"]
+
         print("DONE!")
-        # w, h = mosaic_image[0].size
-        # new_im = Image.new('RGB', (w, h*len(mosaic_image)))
-        # LOGI(f"Vertically concatenated image is of size: {new_im.size}")
-        # y_offset = 0
-        # for img_row in mosaic_image:
-        #     new_im.paste(img_row, (0,y_offset))
-        #     y_offset += im.size[1]
-        
-        # new_im.save(f"{self.resources}/doc/generated_samples.png")
+
+        # Convert the mosaic list into a horizontal mosaic array
+        concatenated_image = np.concatenate(mosaic_image, axis=1) 
+
+        # Convert array to image
+        image_to_save = Image.fromarray(concatenated_image)
+
+        # Save the image
+        image_to_save.save(f"{self.resources}/doc/generated_samples.png")
