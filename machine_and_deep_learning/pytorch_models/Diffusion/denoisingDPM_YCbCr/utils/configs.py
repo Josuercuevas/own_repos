@@ -33,7 +33,7 @@ RES_PATH = 'resources'
 
 PARAM_SETTING = {
     "learning_rate": 2e-6, # from paper (https://arxiv.org/pdf/2006.11239.pdf) for images with resolution below 256x256
-    "batch_size": 96,  # depends on memory
+    "batch_size": 10,  # depends on memory
     "iterations": 8000000, # in the paper they trained for 800k iterations, for 1000 steps
     "checkpoint_rate": 1000, # save checkpoint every 1000 iterations
     "model_snapshot": "models/latest-model.pth", # latest checkpoint snapshot
@@ -58,7 +58,7 @@ PARAM_SETTING = {
     "ema_update_rate": 1, # appendix B in paper https://arxiv.org/pdf/2006.11239.pdf
     "ema_start": 2000, # appendix B in paper https://arxiv.org/pdf/2006.11239.pdf
     "num_groups": 32, # appendix in paper https://arxiv.org/pdf/2006.11239.pdf
-    "num_classes": 2, # for label conditioning  ############################################################################################################
+    "num_classes": 10, # for label conditioning  ############################################################################################################
     "img_channels": 192,   ####################################################################################################################################
     "img_size": (16, 16), # H and W of the image to be processed ############################################################################################
     "image_pad": 0,

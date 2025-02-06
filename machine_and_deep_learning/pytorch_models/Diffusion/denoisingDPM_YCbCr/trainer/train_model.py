@@ -12,6 +12,7 @@ import os
 from trainer.dct2rgb import to_img
 from scipy.ndimage import zoom
 import cv2
+import sys
 
 # tensorboard - added on 2024.07.10
 from torch.utils.tensorboard import SummaryWriter
@@ -157,9 +158,10 @@ Our data was prepared as follows:
 7. Save as arrays into PC
 ''' 
 class CustomDataset(Dataset):
-    def __init__(self, img_dir, transform=None, target_transform=None):
-        self.img_labels = [x for x in os.listdir(img_dir)]   # LIST OF THE NAMES OF ALL ARRAYS
+    def __init__(self, img_dir, transform=None, target_transform=None, files_subfolders=True):
+        self.img_labels = [x for x in os.listdir(img_dir)]   # LIST OF THE NAMES OF ALL CLASSES/ARRAYS
         self.img_dir = img_dir
+        self.files_subfolders = files_subfolders # to mark that files in separated subfolders
         self.transform = transform,    # NOT DOING ANYTHING
         self.target_transform = target_transform  # NOT DOING ANYTHING
 
@@ -170,9 +172,18 @@ class CustomDataset(Dataset):
     def __getitem__(self, idx):
 
         # Get the path for the array
-        # C:\Users\vminanda\Desktop\josue code - diffussion\own_repos-master\own_repos-master\machine_and_deep_learning\pytorch_models\Diffusion\denoisingDPM\resources\datasets\concatenated_outputs\train\00000-20240603T070734Z-001_00007.npy,
-        # C:\Users\vminanda\Desktop\josue code - diffussion\own_repos-master\own_repos-master\machine_and_deep_learning\pytorch_models\Diffusion\denoisingDPM\resources\datasets\concatenated_outputs\train\00000-20240603T070734Z-001_00152.npy 
-        img_path = os.path.join(self.img_dir, self.img_labels[idx])
+        if self.files_subfolders:
+            folder_class = f"class{idx}"
+            files_paths = [x for x in os.listdir(os.path.join(self.img_dir, folder_class))]
+            n_files = len(files_paths)
+            idx_file = np.random.randint(0, n_files)
+            LOGD(f"{self.img_dir}, {self.img_labels}, {idx}, {folder_class}, {n_files} files inside, {files_paths[idx_file]}")
+            img_path = os.path.join(os.path.join(self.img_dir, folder_class), files_paths[idx_file])
+        else:
+            img_path = os.path.join(self.img_dir, self.img_labels[idx])
+        
+        LOGW(f"file to load is: {img_path}")
+        sys.exit(0)
         
         # Load the concatenated array
         image = np.load(img_path, allow_pickle=True)
@@ -195,21 +206,23 @@ class CustomDataset(Dataset):
         Cb_norm = (2*(Cb-minCb))/(maxCb-minCb) - 1
         Cr_norm = (2*(Cr-minCr))/(maxCr-minCr) - 1
 
-        # Dictionary for labels
-        classes_dictionary = {
-            "airplanes":0,
-            "cats":1,
-        }
+        if not self.files_subfolders:
+            # Dictionary for labels
+            classes_dictionary = {
+                "airplanes":0,
+                "cats":1,
+            }
+            # Obtain the label for the given image
+            animal = self.img_labels[idx].split("_")[0]
+            label = classes_dictionary[animal]
+        else:
+            label = idx
 
         # Concatenate normalized arrays into one
         image = np.concatenate((Y_norm, Cb_norm, Cr_norm), axis=0)
 
         # Convert the array to a tensor (for training)
         image = torch.from_numpy(image).clip(-1, 1)
-
-        # Obtain the label for the given image
-        animal = self.img_labels[idx].split("_")[0]
-        label = classes_dictionary[animal]
 
         # Return the image and label (as tensors)
         return image, torch.tensor(label)
@@ -303,12 +316,12 @@ class DiffusionModelTrainer:
                     LOGI("getting new data samples")
 
                 
-
+                LOGW(f"Getting samples for iteration-{iteration}")
                 x, y = next(self.train_loader)
                 if iteration == 1:
                     writer.add_graph(self.diffusion_model, x)
                     writer.close()
-                # print(f"shape = {x.shape}, min = {torch.min(x)}, max = {torch.max(x)}")
+                LOGW(f"shape = {x.shape}, min = {torch.min(x)}, max = {torch.max(x)}")
                 
                 # CHECKING THAT THE DATA THAT GOES INTO THE MODEL IS CORRECT
                 # print("converting X to array")
