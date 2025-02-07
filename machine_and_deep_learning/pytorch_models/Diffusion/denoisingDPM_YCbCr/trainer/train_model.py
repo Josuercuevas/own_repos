@@ -158,29 +158,25 @@ Our data was prepared as follows:
 7. Save as arrays into PC
 ''' 
 class CustomDataset(Dataset):
-    def __init__(self, img_dir, transform=None, target_transform=None, files_subfolders=True):
-        self.img_labels = [x for x in os.listdir(img_dir)]   # LIST OF THE NAMES OF ALL CLASSES/ARRAYS
+    def __init__(self, img_dir, transform=None, target_transform=None):
+        img_labels = [x for x in os.listdir(img_dir)]   # LIST OF THE NAMES OF ALL CLASSES
+        self.img_files = []
+        for classid in img_labels:
+            tmp = [f"{classid}/{x}" for x in os.listdir(os.path.join(img_dir, classid))]
+            self.img_files += tmp
         self.img_dir = img_dir
-        self.files_subfolders = files_subfolders # to mark that files in separated subfolders
         self.transform = transform,    # NOT DOING ANYTHING
         self.target_transform = target_transform  # NOT DOING ANYTHING
 
     def __len__(self):
-        return len(self.img_labels)
-
+        return len(self.img_files)
 
     def __getitem__(self, idx):
-
         # Get the path for the array
-        if self.files_subfolders:
-            folder_class = f"class{idx}"
-            files_paths = [x for x in os.listdir(os.path.join(self.img_dir, folder_class))]
-            n_files = len(files_paths)
-            idx_file = np.random.randint(0, n_files)
-            LOGD(f"{self.img_dir}, {self.img_labels}, {idx}, {folder_class}, {n_files} files inside, {files_paths[idx_file]}")
-            img_path = os.path.join(os.path.join(self.img_dir, folder_class), files_paths[idx_file])
-        else:
-            img_path = os.path.join(self.img_dir, self.img_labels[idx])
+        filename = self.img_files[idx]
+        class_id = int((filename.split('/')[0]).replace('class', ''))
+        LOGD(f"{self.img_dir}, {idx}, {filename}, {class_id}")
+        img_path = os.path.join(self.img_dir, filename)
         
         LOGD(f"file to load is: {img_path}")
         # sys.exit(0)
@@ -206,17 +202,7 @@ class CustomDataset(Dataset):
         Cb_norm = (2*(Cb-minCb))/(maxCb-minCb) - 1
         Cr_norm = (2*(Cr-minCr))/(maxCr-minCr) - 1
 
-        if not self.files_subfolders:
-            # Dictionary for labels
-            classes_dictionary = {
-                "airplanes":0,
-                "cats":1,
-            }
-            # Obtain the label for the given image
-            animal = self.img_labels[idx].split("_")[0]
-            label = classes_dictionary[animal]
-        else:
-            label = idx
+        label = class_id
 
         # Concatenate normalized arrays into one
         image = np.concatenate((Y_norm, Cb_norm, Cr_norm), axis=0)
