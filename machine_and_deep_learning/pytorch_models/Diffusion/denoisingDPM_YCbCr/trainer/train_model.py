@@ -182,8 +182,8 @@ class CustomDataset(Dataset):
         else:
             img_path = os.path.join(self.img_dir, self.img_labels[idx])
         
-        LOGW(f"file to load is: {img_path}")
-        sys.exit(0)
+        LOGD(f"file to load is: {img_path}")
+        # sys.exit(0)
         
         # Load the concatenated array
         image = np.load(img_path, allow_pickle=True)
@@ -316,29 +316,23 @@ class DiffusionModelTrainer:
                     LOGI("getting new data samples")
 
                 
-                LOGW(f"Getting samples for iteration-{iteration}")
+                LOGD(f"Getting samples for iteration-{iteration}")
                 x, y = next(self.train_loader)
-                if iteration == 1:
-                    writer.add_graph(self.diffusion_model, x)
-                    writer.close()
-                LOGW(f"shape = {x.shape}, min = {torch.min(x)}, max = {torch.max(x)}")
-                
-                # CHECKING THAT THE DATA THAT GOES INTO THE MODEL IS CORRECT
-                # print("converting X to array")
-                # x_array = x.cpu().detach()
-
-                # print("visualizing it, this shape btw --> ", x_array.shape)
-                # to_img(x_array)
-
-                # # send to accelator if configured
-                # if iteration % self.configs["checkpoint_rate"] == 0:
-                #     LOGI(f"Sending samples to {self.device}")
-
                 x = x.to(self.device).float()
                 y = y.to(self.device)
+                if iteration == 1:
+                    if self.configs["use_labels"]:
+                        writer.add_graph(self.diffusion_model, (x, y))
+                    else:
+                        writer.add_graph(self.diffusion_model, x)
+                    writer.close()
+                LOGD(f"shape = {x.shape}, min = {torch.min(x)}, max = {torch.max(x)}")
 
-                # print(f'\nx size = {x.size()}, xmin {torch.min(x)}, xmax {torch.max(x)}')
-                # print(f'y size = {x.size()}, ymin {torch.min(y)}, ymax {torch.max(y)}')
+                # send to accelator if configured
+                if iteration % self.configs["checkpoint_rate"] == 0:
+                    LOGI(f"Sending samples to {self.device}")
+                    LOGI(f'\nx size = {x.size()}, xmin {torch.min(x)}, xmax {torch.max(x)}')
+                    LOGI(f'y size = {x.size()}, ymin {torch.min(y)}, ymax {torch.max(y)}')
 
                 # if labels are to used, then we feed them to create the embeddings 
                 # and train the biases
@@ -346,9 +340,9 @@ class DiffusionModelTrainer:
                     LOGI("Forward passing through diffusion process")
 
                 if self.configs["use_labels"]:
-                    # print(x.shape, y.shape)
-                    # print(type(x))
-                    # print(y)
+                    LOGD(x.shape, y.shape)
+                    LOGD(type(x))
+                    LOGD(y)
                     output_loss = self.diffusion_model(x, y)
                 else:
                     output_loss = self.diffusion_model(x)
