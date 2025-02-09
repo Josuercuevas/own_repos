@@ -83,7 +83,7 @@ class DiffusionModelSampler:
                         print("starting to gen samples WITHOUT paralalel")
                         samples = self.diffusion_model.sample(batch_size=(end_smp-start_smp), device=self.device,
                                                                 use_ema=True, gen_seq=False)
-                print("line 82 ok")
+                # print("line 82 ok")
                 LOGI("Dumping some images for later visualization")
                 # samples generated, and undo the normalization from [-1, 1] so now it will be from [0, 1]
                 # then channels are moved at the end for reconstruction/visualization
@@ -94,8 +94,8 @@ class DiffusionModelSampler:
 
                 # print(np.max(samples), np.min(samples))
                 
-                print("saving generated images....", samples.shape)
-                np.save(f"{self.resources}/doc/generated_images_072fixed.npy", samples, allow_pickle=True)
+                # print("saving generated images....", samples.shape)
+                # np.save(f"{self.resources}/doc/generated_images_072fixed.npy", samples, allow_pickle=True)
                 # LOGI(f"Set of images to be dumped are of shape: {samples.shape}")
                 # x_offset = 0
                 # for idx in range(samples.shape[0]):
