@@ -39,7 +39,7 @@ PARAM_SETTING = {
     "model_snapshot": "models/latest-model.pth", # latest checkpoint snapshot
     "optimizer_snapshot": "optimizers/latest-optimizer.pth", # latest optimizer snapshot
     "iteration_snapshot": "optimizers/latest-iteration.txt", # latest iteration checkpoint
-    "image_datapath": "datasets/cifar10_YYY", # path to images dataset
+    "image_datapath": "datasets/cifar10", # path to images dataset
     "linear_schedule_low": 1e-4, # lower bound of Beta, appendix B in the paper
     "linear_schedule_high": 0.02, # upper bound of Beta, appendix B in the paper
     "beta_schedule": "linear", # default in paper https://arxiv.org/pdf/2006.11239.pdf
