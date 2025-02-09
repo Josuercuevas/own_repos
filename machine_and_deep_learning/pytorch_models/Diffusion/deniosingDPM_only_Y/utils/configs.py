@@ -32,14 +32,14 @@ SUPPORTED_NOISE_SCHEDULES = ["cosine", "linear"]
 RES_PATH = 'resources'
 
 PARAM_SETTING = {
-    "learning_rate": 2e-4, # from paper (https://arxiv.org/pdf/2006.11239.pdf) for images with resolution below 256x256
-    "batch_size": 128,  # depends on memory
+    "learning_rate": 2e-6, # from paper (https://arxiv.org/pdf/2006.11239.pdf) for images with resolution below 256x256
+    "batch_size": 64,  # depends on memory
     "iterations": 800000, # in the paper they trained for 800k iterations, for 1000 steps
     "checkpoint_rate": 1000, # save checkpoint every 1000 iterations
     "model_snapshot": "models/latest-model.pth", # latest checkpoint snapshot
     "optimizer_snapshot": "optimizers/latest-optimizer.pth", # latest optimizer snapshot
     "iteration_snapshot": "optimizers/latest-iteration.txt", # latest iteration checkpoint
-    "image_datapath": "datasets/cifar10_128", # path to images dataset
+    "image_datapath": "datasets/cifar10_YYY", # path to images dataset
     "linear_schedule_low": 1e-4, # lower bound of Beta, appendix B in the paper
     "linear_schedule_high": 0.02, # upper bound of Beta, appendix B in the paper
     "beta_schedule": "linear", # default in paper https://arxiv.org/pdf/2006.11239.pdf
@@ -58,10 +58,10 @@ PARAM_SETTING = {
     "ema_update_rate": 1, # appendix B in paper https://arxiv.org/pdf/2006.11239.pdf
     "ema_start": 2000, # appendix B in paper https://arxiv.org/pdf/2006.11239.pdf
     "num_groups": 32, # appendix in paper https://arxiv.org/pdf/2006.11239.pdf
-    "num_classes": 2, # for label conditioning  ############################################################################################################
+    "num_classes": 10, # for label conditioning  ############################################################################################################
     "img_channels": 64,   ####################################################################################################################################
     "img_size": (16, 16), # H and W of the image to be processed ############################################################################################
     "image_pad": 0,
     "dataparallelism": True, # to process on multiple devices
-    "num_workers": 64, # number of workers for data loading
+    "num_workers": 8, # number of workers for data loading
 }
