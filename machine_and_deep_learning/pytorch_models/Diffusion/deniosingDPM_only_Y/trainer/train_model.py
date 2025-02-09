@@ -12,10 +12,11 @@ import os
 from trainer.dct2rgb import to_img
 from scipy.ndimage import zoom
 import cv2
+import random
 
 # tensorboard - added on 2024.07.10
 from torch.utils.tensorboard import SummaryWriter
-writer = SummaryWriter("runs/training_1003")
+writer = SummaryWriter("runs/training_02.24.2025")
 
 DEBUG_IMAGES = False
 MAX_BATCH_VISUALIZE = 10
@@ -25,7 +26,7 @@ def reshape(arr):
     FLATTEN_KEY = np.arange(64).reshape((8, 8))
     arr = np.asarray(arr)
     if arr.shape != (64,):
-        print("array shape --> ", arr.shape)
+        # print("array shape --> ", arr.shape)
         raise ValueError('Array needs to be macroblock of shape 8x8')
     rows = cols = 8
     macroblock = np.empty(shape=(rows, cols))
@@ -38,44 +39,44 @@ def reshape(arr):
 
 
 # def dct_2_rgb(dct_y, dct_cb, dct_cr):
-def dct_2_rgb(dct_y):
+def dct_2_rgb(dct_cb):
     # print(f'Y = {dct_y.shape}, Cb = {dct_cb.shape}, Cr = {dct_cr.shape}')
-    dct_y = dct_y.transpose((1, 2, 0))
-    # dct_cb = dct_cb.transpose((1, 2, 0))
+    # dct_y = dct_y.transpose((1, 2, 0))
+    dct_cb = dct_cb.transpose((1, 2, 0))
     # dct_cr = dct_cr.transpose((1, 2, 0))
     # print(f'Y = {dct_y.shape}, Cb = {dct_cb.shape}, Cr = {dct_cr.shape}')
 
 
-    rows, cols, _ = dct_y.shape
-    imgY_rec = np.ones(shape=(8*rows, 8*cols))
-    for j in range(rows):
-        for i in range(cols):
-            spectrogram = reshape(dct_y[j, i])
-            macroblock = cv2.idct(spectrogram) + 128
-            imgY_rec[8 * j: 8 * (j + 1), 8 * i: 8 * (i + 1)] = macroblock
-    # print('wuuut')
-    imgY_rec[imgY_rec < 0] = 0
-    imgY_rec[imgY_rec > 255] = 255
-    imgY_rec = np.uint8(imgY_rec)
+    # rows, cols, _ = dct_y.shape
+    # imgY_rec = np.ones(shape=(8*rows, 8*cols))
+    # for j in range(rows):
+    #     for i in range(cols):
+    #         spectrogram = reshape(dct_y[j, i])
+    #         macroblock = cv2.idct(spectrogram) + 128
+    #         imgY_rec[8 * j: 8 * (j + 1), 8 * i: 8 * (i + 1)] = macroblock
+    # # print('wuuut')
+    # imgY_rec[imgY_rec < 0] = 0
+    # imgY_rec[imgY_rec > 255] = 255
+    # imgY_rec = np.uint8(imgY_rec)
     # print("all ok 1")
 
     # Cb-Channel
-    # rows, cols, _ = dct_cb.shape
-    # # print('dct_cb shape = ', dct_y.shape)
+    rows, cols, _ = dct_cb.shape
+    # print('dct_cb shape = ', dct_cb.shape)
     imgCb_rec = np.ones(shape=(8*rows, 8*cols))
-    # for j in range(rows):
-    #     for i in range(cols):
-    #         spectrogram = reshape(dct_cb[j, i])
-    #         macroblock = cv2.idct(spectrogram) + 128
-    #         imgCb_rec[8 * j: 8 * (j + 1), 8 * i: 8 * (i + 1)] = macroblock
-    # imgCb_rec[imgCb_rec < 0] = 0
-    # imgCb_rec[imgCb_rec > 255] = 255
-    # imgCb_rec = np.uint8(imgCb_rec)
+    for j in range(rows):
+        for i in range(cols):
+            spectrogram = reshape(dct_cb[j, i])
+            macroblock = cv2.idct(spectrogram) + 128
+            imgCb_rec[8 * j: 8 * (j + 1), 8 * i: 8 * (i + 1)] = macroblock
+    imgCb_rec[imgCb_rec < 0] = 0
+    imgCb_rec[imgCb_rec > 255] = 255
+    imgCb_rec = np.uint8(imgCb_rec)
     # # print("all ok 2")
 
     # # Cr-Channel
     # rows, cols, _ = dct_cr.shape
-    imgCr_rec = np.ones(shape=(8*rows, 8*cols))
+    # imgCr_rec = np.ones(shape=(8*rows, 8*cols))
     # for j in range(rows):
     #     for i in range(cols):
     #         spectrogram = reshape(dct_cr[j, i])
@@ -88,7 +89,7 @@ def dct_2_rgb(dct_y):
     # print("all ok 3")
 
     # img_rec = np.dstack((imgY_rec, imgCr_rec, imgCb_rec))
-    img_rec = np.dstack((imgY_rec, imgY_rec, imgY_rec))
+    img_rec = np.dstack((imgCb_rec, imgCb_rec, imgCb_rec))
     # img_rec = np.dstack((imgY_rec))
     img_rec = np.uint8(img_rec)
     img_rec = cv2.cvtColor(img_rec, cv2.COLOR_YCrCb2BGR)
@@ -99,8 +100,8 @@ def dct_2_rgb(dct_y):
     # print("all ok 4")
 
     # Visualization
-    print(img_rec.shape)
-    print(img_rec.min(), img_rec.max())
+    # print(img_rec.shape)
+    # print(img_rec.min(), img_rec.max())
     return img_rec
 
 
@@ -125,11 +126,11 @@ def DCT_to_RGB(x):
     maxCb = 980
     maxCr = 1034
     x = x.numpy()
-
+    # print("x shape = ", x.shape)
     # first, denormalize
-    Y_norm = x[:64, :, :]
-    # Cb_norm = x[64:128, :, :]
-    # Cr_norm = x[128:, :, :]
+    Y_norm = x[:64, :, :] 
+    # Cb_norm = x[:64, :, :]  # it should be this but since dataloader only sends Cb, then Cb is same as Y  x[64:128, :, :]
+    # Cr_norm = x[:64, :, :]
     Y = denormalize(Y_norm, minY, maxY)
     # Cb = denormalize(Cb_norm, minCb, maxCb)
     # Cr = denormalize(Cr_norm, minCr, maxCr)
@@ -139,8 +140,9 @@ def DCT_to_RGB(x):
     # Cr = downsample(Cr)
 
     # DCT to RGB
-    # image = dct_2_rgb(Y,Cb,Cr)
     image = dct_2_rgb(Y)
+    # image = dct_2_rgb(Cr)
+    # image = dct_2_rgb(Cb)
 
     # cv2.imshow("Reconstructed Image", image)
     # cv2.waitKey()
@@ -162,27 +164,33 @@ Our data was prepared as follows:
 ''' 
 class CustomDataset(Dataset):
     def __init__(self, img_dir, transform=None, target_transform=None):
-        self.img_labels = [x for x in os.listdir(img_dir)]   # LIST OF THE NAMES OF ALL ARRAYS
+        self.img_labels = []
+        for folder in os.listdir(img_dir):
+            for file in os.listdir(os.path.join(img_dir,folder)):
+                self.img_labels.append(os.path.join(img_dir,folder,file))
+        random.shuffle(self.img_labels)
         self.img_dir = img_dir
         self.transform = transform,    # NOT DOING ANYTHING
         self.target_transform = target_transform  # NOT DOING ANYTHING
+
 
     def __len__(self):
         return len(self.img_labels)
 
 
     def __getitem__(self, idx):
-
         # Get the path for the array
-        img_path = os.path.join(self.img_dir, self.img_labels[idx])   # C:\Users\vminanda\Desktop\josue code - diffussion\own_repos-master\own_repos-master\machine_and_deep_learning\pytorch_models\Diffusion\denoisingDPM\resources\datasets\concatenated_outputs\train\00000-20240603T070734Z-001_00007.npy, C:\Users\vminanda\Desktop\josue code - diffussion\own_repos-master\own_repos-master\machine_and_deep_learning\pytorch_models\Diffusion\denoisingDPM\resources\datasets\concatenated_outputs\train\00000-20240603T070734Z-001_00152.npy 
-        
+        img_path = self.img_labels[idx]   # C:\Users\vminanda\Desktop\josue code - diffussion\own_repos-master\own_repos-master\machine_and_deep_learning\pytorch_models\Diffusion\denoisingDPM\resources\datasets\concatenated_outputs\train\00000-20240603T070734Z-001_00007.npy, C:\Users\vminanda\Desktop\josue code - diffussion\own_repos-master\own_repos-master\machine_and_deep_learning\pytorch_models\Diffusion\denoisingDPM\resources\datasets\concatenated_outputs\train\00000-20240603T070734Z-001_00152.npy 
+
         # Load the concatenated array
+        # print("loading --> ", img_path)
         image = np.load(img_path, allow_pickle=True)
+        # print("loaded --> ", image.shape)
 
         # Extract the Y, Cb, and Cr components
         Y = image[:64, :, :]
-        Cb = image[64:128, :, :]
-        Cr = image[128:, :, :]
+        # Cb = image[64:128, :, :]
+        # Cr = image[128:, :, :]
 
         # Values for normalization
         minY = -1024
@@ -194,25 +202,35 @@ class CustomDataset(Dataset):
 
         # Normalize between -1 and 1
         Y_norm = (2*(Y-minY))/(maxY-minY) - 1
-        Cb_norm = (2*(Cb-minCb))/(maxCb-minCb) - 1
-        Cr_norm = (2*(Cr-minCr))/(maxCr-minCr) - 1
+        # Cb_norm = (2*(Cb-minCb))/(maxCb-minCb) - 1
+        # Cr_norm = (2*(Cr-minCr))/(maxCr-minCr) - 1
 
         # Dictionary for labels
         classes_dictionary = {
-            "airplanes":0,
-            "cats":1,
+            "class0":0,
+            "class1":1,
+            "class2":2,
+            "class3":3,
+            "class4":4,
+            "class5":5,
+            "class6":6,
+            "class7":7,
+            "class8":8,
+            "class9":9,
         }
 
         # Concatenate normalized arrays into one
         # image = np.concatenate((Y_norm, Cb_norm, Cr_norm), axis=0)
         image = Y_norm
+        # image = Cb_norm
+        # image = Cr_norm
 
         # Convert the array to a tensor (for training)
         image = torch.from_numpy(image).clip(-1, 1)
 
         # Obtain the label for the given image
-        animal = self.img_labels[idx].split("_")[0]
-        label = classes_dictionary[animal]
+        folder = img_path.split("/")[-1].split("\\")[0]
+        label = classes_dictionary[folder]
 
         # Return the image and label (as tensors)
         return image, torch.tensor(label)
@@ -253,8 +271,6 @@ class DiffusionModelTrainer:
         # iterator for training set, remember things are normalized from [0, 1] when using torchvision
         train_dataset = CustomDataset(
             img_dir=f"{self.resources}/{self.configs['image_datapath']}/train/")
-        
-
         if DEBUG_IMAGES:
             # debug images to make sure we are dealing with proper values
             for x, y in train_dataset:
@@ -313,7 +329,7 @@ class DiffusionModelTrainer:
                 #     writer.add_graph(self.diffusion_model, x)
                 #     writer.close()
                 # print(f"shape = {x.shape}, min = {torch.min(x)}, max = {torch.max(x)}")
-                
+                # print(f"y = {y}")
                 # CHECKING THAT THE DATA THAT GOES INTO THE MODEL IS CORRECT
                 # print("converting X to array")
                 # x_array = x.cpu().detach()
@@ -450,9 +466,14 @@ class DiffusionModelTrainer:
                     LOGW(f"Iteration-{iteration}: TestLoss-{test_loss}, TrainLoss-{train_loss}, sec/iter: {iter_time_sec}")
                     
                     LOGW("creating a sample generated at this time")
-                    dct_example = samples[0]
-                    img_ = DCT_to_RGB(dct_example)
-                    cv2.imwrite(f'resources/sample_images/img_at_iter#{iteration}.png', img_)
+                    sampled_imgs = []
+                    for idx,_ in enumerate(samples):
+                        dct_example = samples[idx]
+                        img_ = DCT_to_RGB(dct_example)
+                        sampled_imgs.append(img_)
+
+                    concatenated_images = cv2.hconcat(sampled_imgs)
+                    cv2.imwrite(f'resources/sample_images/img_at_iter#{iteration}.png', concatenated_images)
 
                     # LOGI("Dumping some images for later visualization")
                     # # samples generated, and undo the normalization from [-1, 1] so now it will be from [0, 1]
