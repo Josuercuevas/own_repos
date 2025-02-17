@@ -103,14 +103,23 @@ class DiffusionModelTrainer:
                 if iteration % self.configs["checkpoint_rate"] == 0:
                     LOGI("getting new data samples")
 
+                LOGD(f"Getting samples for iteration-{iteration}")
                 x, y = next(self.train_loader)
+                x = x.to(self.device).float()
+                y = y.to(self.device)
+                if iteration == 1:
+                    if self.configs["use_labels"]:
+                        writer.add_graph(self.diffusion_model, (x, y))
+                    else:
+                        writer.add_graph(self.diffusion_model, x)
+                    writer.close()
+                LOGD(f"shape = {x.shape}, min = {torch.min(x)}, max = {torch.max(x)}")
 
                 # send to accelator if configured
                 if iteration % self.configs["checkpoint_rate"] == 0:
                     LOGI(f"Sending samples to {self.device}")
-
-                x = x.to(self.device)
-                y = y.to(self.device)
+                    LOGI(f'\nx size = {x.size()}, xmin {torch.min(x)}, xmax {torch.max(x)}')
+                    LOGI(f'y size = {x.size()}, ymin {torch.min(y)}, ymax {torch.max(y)}')
 
                 # if labels are to used, then we feed them to create the embeddings 
                 # and train the biases
@@ -118,6 +127,9 @@ class DiffusionModelTrainer:
                     LOGI("Forward passing through diffusion process")
 
                 if self.configs["use_labels"]:
+                    LOGD(x.shape, y.shape)
+                    LOGD(type(x))
+                    LOGD(y)
                     output_loss = self.diffusion_model(x, y)
                 else:
                     output_loss = self.diffusion_model(x)
@@ -130,8 +142,6 @@ class DiffusionModelTrainer:
                     LOGI(f"output loss looks like: {output_loss}")
                 train_loss += output_loss.item()
 
-                writer.add_scalar('Training Loss', output_loss.item(), iteration)
-
                 if iteration % self.configs["checkpoint_rate"] == 0:
                     LOGI("Performing Gradient optimization")
 
@@ -141,6 +151,8 @@ class DiffusionModelTrainer:
                 output_loss.backward()
                 # update the model weights
                 self.optimizer.step()
+
+                writer.add_scalar('Training Loss', output_loss.item(), iteration)
 
                 # now we update things for EMA
                 if iteration % self.configs["checkpoint_rate"] == 0:
@@ -156,6 +168,7 @@ class DiffusionModelTrainer:
                     # do some test and check performance
                     LOGI("Running the model in testing mode")
                     test_loss = 0
+                    test_counter = 0
                     with torch.no_grad():
                         if self.dataparallel:
                             self.diffusion_model.module.eval() # for model only
@@ -163,7 +176,7 @@ class DiffusionModelTrainer:
 
                         LOGI("Forward passing through diffusion process")
                         for x, y in self.test_loader:
-                            x = x.to(self.device)
+                            x = x.to(self.device).float()
                             y = y.to(self.device)
 
                             if self.configs["use_labels"]:
@@ -175,6 +188,7 @@ class DiffusionModelTrainer:
                                 output_loss = output_loss.mean()
 
                             test_loss += output_loss.item()
+                            test_counter += 1
                     
                     # same idea as in training, but here we Sample, so we need to provide info on the labels
                     # basically generate 1 sample per class, example the input y = [0, 1, ..., 9]
