@@ -1,0 +1,12 @@
+{
+	"name": "Prime",
+	"image": "prime",
+	"forwardPorts": [80],
+	"workspaceMount": "source=${localWorkspaceFolder},target=/prime-workspace,type=bind,consistency=cached",
+	"workspaceFolder": "/prime-workspace",
+	"runArgs": [
+		"-e", "NVIDIA_DRIVER_CAPABILITIES=all",
+		"--gpus", "all",
+		"--mount", "type=bind,source=${localWorkspaceFolder}/packages,target=/packages"
+	]
+}
