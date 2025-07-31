@@ -1,1 +1,1 @@
-docker run --privileged -it -d -v $(pwd):/workspace --name istr_mask --gpus=all --shm-size=64gb istr_mask/dev:v1.0.0
+docker run --privileged -it -d -v $(pwd):/workspace -v /opt/josue_repos/own_repos/machine_and_deep_learning/pytorch_models/transformers/instance-segmentation/datasets/coco_datasets/coco_2017:/workspace/datasets --name istr_mask --gpus=all --shm-size=64gb istr_mask/dev:v1.0.0
