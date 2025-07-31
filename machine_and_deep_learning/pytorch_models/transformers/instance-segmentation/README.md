@@ -6,8 +6,8 @@ This is a code implementation for [**this paper**](https://arxiv.org/abs/2105.00
 The codes are built on top of [Detectron2](https://github.com/facebookresearch/detectron2), [SparseR-CNN](https://github.com/PeizeSun/SparseR-CNN), and [AdelaiDet](https://github.com/aim-uofa/AdelaiDet).
 
 #### Requirements
-- Python=3.8
-- PyTorch=1.6.0, torchvision=0.7.0, cudatoolkit=10.1
+- Python
+- PyTorch, torchvision, cudatoolkit
 - OpenCV for visualization
 
 #### Steps
