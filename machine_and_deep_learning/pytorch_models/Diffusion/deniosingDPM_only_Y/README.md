@@ -98,3 +98,9 @@ Please take a look of the README files in the '**resources/datasets**' folder fo
 ### Diffusion Model (for sample generation)
 
 <img src="./resources/doc/diffusion_visualizer.dot.png" width="500px"></img>
+
+### Contributors
+
+1. Josue R. Cuevas (josuercuevas@gmail.com)
+
+2. Vanny Minanda
