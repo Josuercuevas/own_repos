@@ -1,23 +1,18 @@
 import os
 import itertools
-import time
 from typing import Any, Dict, List, Set
-
 import torch
-
 import detectron2.utils.comm as comm
 from detectron2.checkpoint import DetectionCheckpointer
 from detectron2.config import get_cfg
-from detectron2.data import MetadataCatalog, build_detection_train_loader
-from detectron2.engine import AutogradProfiler, DefaultTrainer, default_argument_parser, default_setup, launch
-from detectron2.evaluation import COCOEvaluator, CityscapesInstanceEvaluator, verify_results#, LVISEvaluator
+from detectron2.data import build_detection_train_loader
+from detectron2.engine import DefaultTrainer, default_argument_parser, default_setup, launch
+from detectron2.evaluation import COCOEvaluator, verify_results
 from detectron2.solver.build import maybe_add_gradient_clipping
-
 from istr import ISTRDatasetMapper, add_ISTR_config
 
 
 class Trainer(DefaultTrainer):
-
     @classmethod
     def build_evaluator(cls, cfg, dataset_name, output_folder=None):
         """
@@ -29,12 +24,6 @@ class Trainer(DefaultTrainer):
         if output_folder is None:
             output_folder = os.path.join(cfg.OUTPUT_DIR, "inference")
         return COCOEvaluator(dataset_name, cfg, True, output_folder)
-
-        # if dataset_name == 'coco_2017_val' or dataset_name == 'coco_2017_test-dev':
-        #     return COCOEvaluator(dataset_name, cfg, True, output_folder)
-        # elif dataset_name == 'cityscapes_fine_instance_seg_val' or dataset_name == 'cityscapes_fine_instance_seg_test':
-        #     return CityscapesInstanceEvaluator(dataset_name)
-
 
     @classmethod
     def build_train_loader(cls, cfg):
@@ -103,7 +92,6 @@ def setup(args):
     default_setup(cfg, args) # sets up final configuration of the training engine
     return cfg
 
-import sys
 
 def main(args):
     cfg = setup(args)
@@ -123,12 +111,7 @@ def main(args):
 
 if __name__ == "__main__":
     args = default_argument_parser().parse_args()
-    print("Command Line Args:", args)
-    launch(
-        main,
-        args.num_gpus,
-        num_machines=args.num_machines,
-        machine_rank=args.machine_rank,
-        dist_url=args.dist_url,
-        args=(args,),
-    )
+    print(f"Input Arguments are as follows:\n{args}")
+    launch(main, args.num_gpus, num_machines=args.num_machines,
+           machine_rank=args.machine_rank, dist_url=args.dist_url,
+           args=(args,),)

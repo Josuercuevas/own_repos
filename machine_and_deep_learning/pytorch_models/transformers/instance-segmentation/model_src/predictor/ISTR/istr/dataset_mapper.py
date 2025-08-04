@@ -122,7 +122,7 @@ class ISTRDatasetMapper:
 
         image_shape = image.shape[:2]  # h, w
 
-        # print(image_shape)
+        # logging.getLogger(__name__).info(f"Image loaded has a shape of: {image_shape}")
 
         # Pytorch's dataloader is efficient on torch.Tensor due to shared-memory,
         # but not efficient on large generic data structures due to the use of pickle & mp.Queue.
