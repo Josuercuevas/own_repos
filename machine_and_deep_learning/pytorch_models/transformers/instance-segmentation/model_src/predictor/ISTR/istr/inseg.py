@@ -1,18 +1,12 @@
 import torch
 import numpy as np
 from torch import nn
-
 from detectron2.modeling import META_ARCH_REGISTRY, build_backbone, detector_postprocess
-
-
 from detectron2.structures import Boxes, ImageList, Instances
-
-
 from .loss import SetCriterion, HungarianMatcher
 from .head import DynamicHead
 from .util.box_ops import box_cxcywh_to_xyxy, box_xyxy_to_cxcywh
 from .util.misc import (nested_tensor_from_tensor_list)
-
 from .maskencoding import *
 
 __all__ = ["ISTR"]
@@ -41,19 +35,16 @@ class ISTR(nn.Module):
     def __init__(self, cfg):
         super().__init__()
 
+        # main configuration
         self.cfg = cfg
-
         self.device = torch.device(cfg.MODEL.DEVICE)
-
         self.in_features = cfg.MODEL.ROI_HEADS.IN_FEATURES
         self.num_classes = cfg.MODEL.ISTR.NUM_CLASSES
         self.num_proposals = cfg.MODEL.ISTR.NUM_PROPOSALS
         self.hidden_dim = cfg.MODEL.ISTR.HIDDEN_DIM
         self.num_heads = cfg.MODEL.ISTR.NUM_HEADS
-
         self.mask_size = cfg.MODEL.ISTR.MASK_SIZE
         self.mask_feat_dim = cfg.MODEL.ISTR.MASK_FEAT_DIM
-
         self.mask_encoding_method = cfg.MODEL.ISTR.MASK_ENCODING_METHOD
 
         # Build Backbone.
