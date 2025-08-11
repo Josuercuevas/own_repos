@@ -1,9 +1,8 @@
 import copy
 import math
-
+import logging
 import torch
 from torch import nn
-
 from detectron2.modeling.poolers import ROIPooler
 from detectron2.structures import Boxes
 
@@ -15,7 +14,10 @@ class DynamicHead(nn.Module):
     def __init__(self, cfg, roi_input_shape):
         super().__init__()
 
+        logger = logging.getLogger(__name__)
+
         # Build RoI.
+        logger.info("Building RoI Pooler")
         self.box_pooler = self._init_box_pooler(cfg, roi_input_shape)
         self.mask_pooler = self._init_mask_pooler(cfg, roi_input_shape)
         
@@ -26,9 +28,11 @@ class DynamicHead(nn.Module):
         nhead = cfg.MODEL.ISTR.NHEADS
         dropout = cfg.MODEL.ISTR.DROPOUT
         self.num_heads = cfg.MODEL.ISTR.NUM_HEADS
+        logger.info("Building RCNN Head with ROI {} classes, {} d_models, {} dim_feedforward, {} nhead, and {} dropout".format(num_classes, d_model, dim_feedforward, nhead, dropout))
         rcnn_head = RCNNHead(cfg, d_model, num_classes, dim_feedforward, nhead, dropout)
         self.head_series = _get_clones(rcnn_head, self.num_heads)
         self.return_intermediate = cfg.MODEL.ISTR.DEEP_SUPERVISION
+        logger.info("Deep Suppervision Needed -> {}".format(self.return_intermediate))
         
         # Init parameters.
         self.num_classes = num_classes
@@ -168,7 +172,7 @@ class RCNNHead(nn.Module):
         self.d_model = d_model
         self.cfg = cfg
 
-        # dynamic.
+        # dynamic attention
         self.self_attn = nn.MultiheadAttention(d_model, nhead, dropout=dropout)
         self.inst_interact = DynamicConv(cfg)
 
@@ -185,7 +189,7 @@ class RCNNHead(nn.Module):
 
         self.activation = nn.ELU(inplace=True)
 
-        # cls.
+        # all classes have a probability to be used to determine the class of a box
         num_cls = cfg.MODEL.ISTR.NUM_CLS
         cls_module = list()
         for _ in range(num_cls):
@@ -194,7 +198,7 @@ class RCNNHead(nn.Module):
             cls_module.append(nn.ELU(inplace=True))
         self.cls_module = nn.ModuleList(cls_module)
 
-        # reg.
+        # reg for each box proposal
         num_reg = cfg.MODEL.ISTR.NUM_REG
         reg_module = list()
         for _ in range(num_reg):
@@ -216,7 +220,7 @@ class RCNNHead(nn.Module):
             self.ret_roi_layer_1 = conv_block(in_ch=d_model, out_ch=64)
             self.ret_roi_layer_2 = conv_block(in_ch=64, out_ch=32)
 
-        # pred.
+        # Pooling all predictions
         self.class_logits = nn.Linear(d_model, num_classes)
         self.bboxes_delta = nn.Linear(d_model, 4)
         self.scale_clamp = scale_clamp
