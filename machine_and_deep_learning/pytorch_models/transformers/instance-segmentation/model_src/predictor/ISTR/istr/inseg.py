@@ -3,6 +3,7 @@ import numpy as np
 from torch import nn
 from detectron2.modeling import META_ARCH_REGISTRY, build_backbone, detector_postprocess
 from detectron2.structures import Boxes, ImageList, Instances
+import logging
 from .loss import SetCriterion, HungarianMatcher
 from .head import DynamicHead
 from .util.box_ops import box_cxcywh_to_xyxy, box_xyxy_to_cxcywh
@@ -35,6 +36,8 @@ class ISTR(nn.Module):
     def __init__(self, cfg):
         super().__init__()
 
+        logger = logging.getLogger(__name__)
+
         # main configuration
         self.cfg = cfg
         self.device = torch.device(cfg.MODEL.DEVICE)
@@ -46,17 +49,26 @@ class ISTR(nn.Module):
         self.mask_size = cfg.MODEL.ISTR.MASK_SIZE
         self.mask_feat_dim = cfg.MODEL.ISTR.MASK_FEAT_DIM
         self.mask_encoding_method = cfg.MODEL.ISTR.MASK_ENCODING_METHOD
+        logger.info("Building ISTR with {} classes, {} proposals, {} hidden dimensions, {} mask size, {} mask feature dimension, {} mask encoding method, and {} heads.".format(
+            self.num_classes, self.num_proposals, self.hidden_dim, self.mask_size, self.mask_feat_dim, self.mask_encoding_method, self.num_heads))
+        
 
         # Build Backbone.
+        logger.info("Building backbone from: {}".format(cfg.MODEL.BACKBONE.NAME))
         self.backbone = build_backbone(cfg)
         self.size_divisibility = self.backbone.size_divisibility
         
         # Build Proposals.
+        logger.info("Building position embeddings with {} box-proposals (4D) and {} hidden dimensions.".format(self.num_proposals, self.hidden_dim))
         self.pos_embeddings = nn.Embedding(self.num_proposals, self.hidden_dim)
         self.init_proposal_boxes = nn.Embedding(self.num_proposals, 4)
+        
+        # initialization of proposal boxes.
         nn.init.constant_(self.init_proposal_boxes.weight[:, :2], 0.5)
         nn.init.constant_(self.init_proposal_boxes.weight[:, 2:], 1.0)
 
+        # Feature Extraction module.
+        logger.info("Building Image Feature Extractor.")
         self.IFE = ImgFeatExtractor(cfg)
 
         if self.mask_encoding_method == 'AE':
@@ -64,16 +76,19 @@ class ISTR(nn.Module):
             self.mask_D = Decoder(self.mask_size, self.mask_feat_dim)
 
             checkpoint_path = cfg.MODEL.ISTR.PATH_COMPONENTS
+            logger.info("Loading mask encoding components from: {}".format(checkpoint_path))
             checkpoint = torch.load(checkpoint_path, map_location=torch.device('cpu'), weights_only=False)
             self.mask_E.load_state_dict(checkpoint['E'])
             self.mask_D.load_state_dict(checkpoint['D'])
 
+            # select which one you would like to fine tune or if full retraining is necessary
             frozen(self.mask_E)
             # frozen(self.mask_D)
         elif self.mask_encoding_method == 'PCA':
             self.mask_encoding = PCAMaskEncoding(cfg)
             components_path = cfg.MODEL.ISTR.PATH_COMPONENTS
             # update parameters.
+            logger.info("Loading mask encoding components from: {}".format(checkpoint_path))
             parameters = np.load(components_path)
             components = nn.Parameter(torch.from_numpy(parameters['components_c'][0]).float().to(self.device),requires_grad=False)
             explained_variances = nn.Parameter(torch.from_numpy(parameters['explained_variance_c'][0]).float().to(self.device), requires_grad=False)
@@ -84,11 +99,13 @@ class ISTR(nn.Module):
             self.mask_E = self.mask_encoding.encoder
             self.mask_D = self.mask_encoding.decoder
         elif self.mask_encoding_method == 'DCT':
+            logger.info("Building DCT Mask Encoding.")
             self.mask_encoding = DctMaskEncoding(vec_dim=self.mask_feat_dim, mask_size=self.mask_size)
             self.mask_E = self.mask_encoding.encode
             self.mask_D = self.mask_encoding.decode
 
         # Build Dynamic Head.
+        logger.info("Building Dynamic Head with ROI shape of \n{}".format(self.backbone.output_shape()))
         self.head = DynamicHead(cfg=cfg, roi_input_shape=self.backbone.output_shape())
 
         # Loss parameters:
