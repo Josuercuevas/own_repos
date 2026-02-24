@@ -101,7 +101,8 @@ Run on multiple machines:
     parser.add_argument(
         "--dist-url",
         default="tcp://127.0.0.1:{}".format(port),
-        help="initialization URL for pytorch distributed backend. See "
+        help="initialization URL for pytorch distributed backend. "
+        "usually in the form of <host>:<port>, where host is The rendezvous backend endpoin See "
         "https://pytorch.org/docs/stable/distributed.html for details.",
     )
     parser.add_argument(
