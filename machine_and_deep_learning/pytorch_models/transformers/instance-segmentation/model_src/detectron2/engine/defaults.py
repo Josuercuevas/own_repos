@@ -309,7 +309,9 @@ class DefaultTrainer(TrainerBase):
 
         # Assume these objects must be constructed in this order.
         model = self.build_model(cfg)
+        # this comes directly from train_net.py
         optimizer = self.build_optimizer(cfg, model)
+        # this comes directly from train_net.py
         data_loader = self.build_train_loader(cfg)
 
         # For training, wrap with DDP. But don't need this for inference.

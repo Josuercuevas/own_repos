@@ -32,7 +32,10 @@ class ImgFeatExtractor(nn.Module):
 
 @META_ARCH_REGISTRY.register()
 class ISTR(nn.Module):
-
+    """
+        Invoked when calling model = META_ARCH_REGISTRY.get(meta_arch)(cfg) if 
+        meta_arch = ISTR
+    """
     def __init__(self, cfg):
         super().__init__()
 
@@ -55,6 +58,10 @@ class ISTR(nn.Module):
 
         # Build Backbone.
         logger.info("Building backbone from: {}".format(cfg.MODEL.BACKBONE.NAME))
+        """
+        Example if the build_resnet_fpn_backbone is used as backbone, then we will call
+        fpn.py for the feature extraction and resnet.py for the backbone
+        """
         self.backbone = build_backbone(cfg)
         self.size_divisibility = self.backbone.size_divisibility
         
@@ -63,7 +70,7 @@ class ISTR(nn.Module):
         self.pos_embeddings = nn.Embedding(self.num_proposals, self.hidden_dim)
         self.init_proposal_boxes = nn.Embedding(self.num_proposals, 4)
         
-        # initialization of proposal boxes.
+        # initialization of proposal boxes to center in [x, y], and to max in [w, h]
         nn.init.constant_(self.init_proposal_boxes.weight[:, :2], 0.5)
         nn.init.constant_(self.init_proposal_boxes.weight[:, 2:], 1.0)
 

@@ -11,7 +11,8 @@ from .c2_model_loading import align_and_update_state_dicts
 class DetectionCheckpointer(Checkpointer):
     """
     Same as :class:`Checkpointer`, but is able to handle models in detectron & detectron2
-    model zoo, and apply conversions for legacy models.
+    model zoo, and apply conversions for legacy models. For details on how this works please
+    check https://github.com/facebookresearch/fvcore/blob/main/fvcore/common/checkpoint.py
     """
 
     def __init__(self, model, save_dir="", *, save_to_disk=None, **checkpointables):

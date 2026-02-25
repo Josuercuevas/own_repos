@@ -87,7 +87,7 @@ def setup(args):
     cfg = get_cfg() # get default configuration engine (base model, etc.)
     add_ISTR_config(cfg) # get default configurations for ISTR
     cfg.merge_from_file(args.config_file) # from file re-writes current settings
-    cfg.merge_from_list(args.opts) # adds the command options
+    cfg.merge_from_list(args.opts) # adds the command options from cmd provided by user
     cfg.freeze() # make sure things don't change during after this
     default_setup(cfg, args) # sets up final configuration of the training engine
     return cfg

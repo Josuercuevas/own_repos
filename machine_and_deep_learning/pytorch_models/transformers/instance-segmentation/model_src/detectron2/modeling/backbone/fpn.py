@@ -211,6 +211,7 @@ class LastLevelP6P7(nn.Module):
 @BACKBONE_REGISTRY.register()
 def build_resnet_fpn_backbone(cfg, input_shape: ShapeSpec):
     """
+    called if "build_resnet_fpn_backbone" is used in cfg.MODEL.BACKBONE.NAM
     Args:
         cfg: a detectron2 CfgNode
 
