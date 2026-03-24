@@ -101,7 +101,8 @@ Run on multiple machines:
     parser.add_argument(
         "--dist-url",
         default="tcp://127.0.0.1:{}".format(port),
-        help="initialization URL for pytorch distributed backend. See "
+        help="initialization URL for pytorch distributed backend. "
+        "usually in the form of <host>:<port>, where host is The rendezvous backend endpoin See "
         "https://pytorch.org/docs/stable/distributed.html for details.",
     )
     parser.add_argument(
@@ -308,7 +309,9 @@ class DefaultTrainer(TrainerBase):
 
         # Assume these objects must be constructed in this order.
         model = self.build_model(cfg)
+        # this comes directly from train_net.py
         optimizer = self.build_optimizer(cfg, model)
+        # this comes directly from train_net.py
         data_loader = self.build_train_loader(cfg)
 
         # For training, wrap with DDP. But don't need this for inference.

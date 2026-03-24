@@ -33,12 +33,18 @@ For the dataset please refer to [this code](data_preparation/), as for the input
 CUDA_VISIBLE_DEVICES=0 python3 predictor/ISTR/train_net.py --num-gpus 1 --config-file predictor/ISTR/configs/ISTR-AE-R50-3x.yaml
 ```
 
-3. Evaluate ISTR (e.g., with ResNet50 backbone)
+3. Train in distributed GPUs system
+```shell
+    (machine0)$ CUDA_VISIBLE_DEVICES=0 python3 predictor/ISTR/train_net.py --num-gpus 1 --config-file predictor/ISTR/configs/ISTR-AE-R50-3x.yaml --machine-rank 0 --num-machines 2 --dist-url <host>:<port> [--other-flags]
+    (machine1)$ CUDA_VISIBLE_DEVICES=0 python3 predictor/ISTR/train_net.py --num-gpus 1 --config-file predictor/ISTR/configs/ISTR-AE-R50-3x.yaml --machine-rank 1 --num-machines 2 --dist-url <host>:<port> [--other-flags]
+```
+
+4. Evaluate ISTR (e.g., with ResNet50 backbone)
 ```shell
 CUDA_VISIBLE_DEVICES=1 python3 predictor/ISTR/train_net.py --num-gpus 1 --config-file predictor/ISTR/configs/ISTR-AE-R50-3x.yaml --eval-only MODEL.WEIGHTS ./output/model_final.pth
 ```
 
-4. Visualize the detection and segmentation results (e.g., with ResNet50 backbone)
+5. Visualize the detection and segmentation results (e.g., with ResNet50 backbone)
 ```shell
 # as a single file
 CUDA_VISIBLE_DEVICES=1 python3 demo/demo.py --config-file predictor/ISTR/configs/ISTR-AE-R50-3x.yaml --input input1.jpg --output ./output --confidence-threshold 0.4 --opts MODEL.WEIGHTS ./output/model_final.pth
