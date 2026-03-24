@@ -184,6 +184,9 @@ class ISTR(nn.Module):
         # Prepare Proposals.
         proposal_boxes = self.init_proposal_boxes.weight.clone()
         proposal_boxes = box_cxcywh_to_xyxy(proposal_boxes)
+        # here what happens is x1, y1, x2, y2 are between [0.0, 1.0], then
+        # we multiply by the W and H of the image to know where in the image they
+        # are located
         proposal_boxes = proposal_boxes[None] * images_whwh[:, None, :]
 
         img_feats = self.IFE(features)
