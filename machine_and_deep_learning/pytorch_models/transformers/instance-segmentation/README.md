@@ -22,7 +22,7 @@ pip install scipy
 pip install shapely
 git clone --recurse-submodules git@github.com:Josuercuevas/own_repos.git
 cd own_repos/machine_and_deep_learning/pytorch_models/transformers/instance-segmentation/model_src/
-python setup.py build develop
+python3 setup.py build develop
 ```
 
 #### Dataset
