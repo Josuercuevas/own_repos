@@ -22,7 +22,7 @@ pip install scipy
 pip install shapely
 git clone --recurse-submodules git@github.com:Josuercuevas/own_repos.git
 cd own_repos/machine_and_deep_learning/pytorch_models/transformers/instance-segmentation/model_src/
-python setup.py build develop
+python3 setup.py build develop
 ```
 
 #### Dataset
@@ -35,8 +35,10 @@ CUDA_VISIBLE_DEVICES=0 python3 predictor/ISTR/train_net.py --num-gpus 1 --config
 
 3. Train in distributed GPUs system
 ```shell
-    (machine0)$ CUDA_VISIBLE_DEVICES=0 python3 predictor/ISTR/train_net.py --num-gpus 1 --config-file predictor/ISTR/configs/ISTR-AE-R50-3x.yaml --machine-rank 0 --num-machines 2 --dist-url <host>:<port> [--other-flags]
-    (machine1)$ CUDA_VISIBLE_DEVICES=0 python3 predictor/ISTR/train_net.py --num-gpus 1 --config-file predictor/ISTR/configs/ISTR-AE-R50-3x.yaml --machine-rank 1 --num-machines 2 --dist-url <host>:<port> [--other-flags]
+    (machine0)$ CUDA_VISIBLE_DEVICES=3,5 python3 predictor/ISTR/train_net.py --num-gpus 2 --config-file predictor/ISTR/configs/ISTR-AE-R50-3x.yaml --machine-rank 0 --num-machines 4 --dist-url <host>:<port> [--other-flags]
+    (machine1)$ CUDA_VISIBLE_DEVICES=1,2 python3 predictor/ISTR/train_net.py --num-gpus 2 --config-file predictor/ISTR/configs/ISTR-AE-R50-3x.yaml --machine-rank 1 --num-machines 4 --dist-url <host>:<port> [--other-flags]
+    (machine2)$ CUDA_VISIBLE_DEVICES=0,4 python3 predictor/ISTR/train_net.py --num-gpus 2 --config-file predictor/ISTR/configs/ISTR-AE-R50-3x.yaml --machine-rank 2 --num-machines 4 --dist-url <host>:<port> [--other-flags]
+    (machine3)$ CUDA_VISIBLE_DEVICES=1,3 python3 predictor/ISTR/train_net.py --num-gpus 2 --config-file predictor/ISTR/configs/ISTR-AE-R50-3x.yaml --machine-rank 3 --num-machines 4 --dist-url <host>:<port> [--other-flags]
 ```
 
 4. Evaluate ISTR (e.g., with ResNet50 backbone)
